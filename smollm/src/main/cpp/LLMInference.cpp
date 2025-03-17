@@ -149,7 +149,7 @@ LLMInference::completionLoop() {
     // check if the length of the inputs to the model
     // have exceeded the context size of the model
     uint32_t contextSize = llama_n_ctx(_ctx);
-    _nCtxUsed            = llama_get_kv_cache_used_cells(_ctx);
+    _nCtxUsed            = llama_kv_self_used_cells(_ctx);
     if (_nCtxUsed + _batch.n_tokens > contextSize) {
         throw std::runtime_error("context size reached");
     }

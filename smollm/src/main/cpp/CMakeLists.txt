@@ -34,6 +34,7 @@ set(SMOLLM_SOURCES
         ${LLAMA_DIR}/src/llama-arch.cpp
         ${LLAMA_DIR}/src/llama-adapter.cpp
         ${LLAMA_DIR}/src/llama-chat.cpp
+        ${LLAMA_DIR}/src/llama-graph.cpp
         ${LLAMA_DIR}/src/unicode.h
         ${LLAMA_DIR}/src/unicode.cpp
         ${LLAMA_DIR}/src/unicode-data.cpp
