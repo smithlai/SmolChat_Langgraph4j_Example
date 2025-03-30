@@ -118,10 +118,12 @@ function(build_library target_name cpu_flags)
     )
     # -Wl,--gc-sections: remove unused sections (garbage collection)
     # -flto: link-time optimization
+    # -Wl,--exclude-libs,ALL: exclude all libraries
     target_link_options(
             ${target_name}
             PRIVATE
             -Wl,--gc-sections -flto
+            -Wl,--exclude-libs,ALL
     )
 endfunction()
 
