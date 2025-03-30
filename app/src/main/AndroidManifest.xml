@@ -16,6 +16,7 @@
         android:theme="@style/Theme.SmolLMAndroid"
         android:localeConfig="@xml/locales_config"
         tools:targetApi="31">
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -25,8 +26,22 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ui.screens.chat.ChatActivity"/>
+
+        <activity
+            android:label="💬 LLM"
+            android:name=".ui.screens.chat.ChatActivity"
+            android:exported="true">
+            <!-- This intent-filter is used to receive text from other apps-->
+            <!-- The received text is then sent to a new chat-->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity>
+
         <activity android:name=".ui.screens.model_download.DownloadModelActivity"/>
+
         <activity android:name=".ui.screens.manage_tasks.ManageTasksActivity"/>
     </application>
 

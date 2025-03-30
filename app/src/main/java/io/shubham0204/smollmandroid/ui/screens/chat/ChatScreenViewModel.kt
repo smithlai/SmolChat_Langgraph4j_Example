@@ -92,6 +92,10 @@ class ChatScreenViewModel(
     private val _showTaskListBottomListState = MutableStateFlow(false)
     val showTaskListBottomListState: StateFlow<Boolean> = _showTaskListBottomListState
 
+    // Used to pre-set a value in the query text-field of the chat screen
+    // It is set when a query comes from a 'share-text' intent in ChatActivity
+    var questionTextDefaultVal: String? = null
+
     // regex to replace <think> tags with <blockquote>
     // to render them correctly in Markdown
     private val findThinkTagRegex = Regex("<think>(.*?)</think>", RegexOption.DOT_MATCHES_ALL)
@@ -164,11 +168,17 @@ class ChatScreenViewModel(
 
     fun sendUserQuery(query: String) {
         _currChatState.value?.let { chat ->
+            // Update the 'dateUsed' attribute of the current Chat instance
+            // when a query is sent by the user
             chat.dateUsed = Date()
             chatsDB.updateChat(chat)
+
             if (chat.isTask) {
+                // If the chat is a 'task', delete all existing messages
+                // to maintain the 'stateless' nature of the task
                 messagesDB.deleteMessages(chat.id)
             }
+
             messagesDB.addUserMessage(chat.id, query)
             _isGeneratingResponse.value = true
             _partialResponse.value = ""

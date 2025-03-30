@@ -115,6 +115,20 @@ class ChatActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        /**
+         * Check if the activity was launched by an intent to share text with the app
+         * If yes, then, extract the text and set its value to [viewModel.questionTextDefaultVal]
+         */
+        if (intent?.action == Intent.ACTION_SEND && intent.type == "text/plain") {
+            intent.getStringExtra(Intent.EXTRA_TEXT)?.let { text ->
+                val chatCount = viewModel.chatsDB.getChatsCount()
+                val newChat = viewModel.chatsDB.addChat(chatName = "Untitled ${chatCount + 1}")
+                viewModel.switchChat(newChat)
+                viewModel.questionTextDefaultVal = text
+            }
+        }
+
         setContent {
             val navController = rememberNavController()
             NavHost(
@@ -480,7 +494,7 @@ private fun MessageInput(
             text = stringResource(R.string.chat_select_model),
         )
     } else {
-        var questionText by remember { mutableStateOf("") }
+        var questionText by remember { mutableStateOf(viewModel.questionTextDefaultVal ?: "") }
         val keyboardController = LocalSoftwareKeyboardController.current
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(8.dp)) {
             when (modelLoadingState) {
