@@ -151,3 +151,14 @@ target_include_directories(
         ${GGML_DIR}/src
         ${GGML_DIR}/src/ggml-cpu
 )
+target_compile_options(
+        ${TARGET_NAME_GGUF_READER}
+        PUBLIC
+        -fvisibility=hidden -fvisibility-inlines-hidden -ffunction-sections -fdata-sections
+)
+target_link_options(
+        ${TARGET_NAME_GGUF_READER}
+        PRIVATE
+        -Wl,--gc-sections -flto
+        -Wl,--exclude-libs,ALL
+)
