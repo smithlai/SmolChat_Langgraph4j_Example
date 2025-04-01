@@ -16,17 +16,23 @@
 
 package io.shubham0204.smollmandroid.data
 
-import io.objectbox.annotation.Entity
-import io.objectbox.annotation.Id
-import io.objectbox.kotlin.flow
+import android.content.Context
+import androidx.room.Dao
+import androidx.room.Database
+import androidx.room.Entity
+import androidx.room.Insert
+import androidx.room.PrimaryKey
+import androidx.room.Query
+import androidx.room.Room
+import androidx.room.RoomDatabase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.runBlocking
 import org.koin.core.annotation.Single
 
-@Entity
+@Entity(tableName = "LLMModel")
 data class LLMModel(
-    @Id var id: Long = 0,
+    @PrimaryKey(autoGenerate = true) var id: Long = 0,
     var name: String = "",
     var url: String = "",
     var path: String = "",
@@ -34,9 +40,40 @@ data class LLMModel(
     var chatTemplate: String = "",
 )
 
+@Dao
+interface LLMModelDao {
+    @Query("SELECT * FROM LLMModel")
+    fun getAllModels(): Flow<List<LLMModel>>
+
+    @Query("SELECT * FROM LLMModel")
+    suspend fun getAllModelsList(): List<LLMModel>
+
+    @Query("SELECT * FROM LLMModel WHERE id = :id")
+    suspend fun getModel(id: Long): LLMModel
+
+    @Insert
+    suspend fun insertModels(vararg models: LLMModel)
+
+    @Query("DELETE FROM LLMModel WHERE id = :id")
+    suspend fun deleteModel(id: Long)
+}
+
+@Database(entities = [LLMModel::class], version = 1)
+abstract class LLMModelDatabase : RoomDatabase() {
+    abstract fun llmModelDao(): LLMModelDao
+}
+
 @Single
-class ModelsDB {
-    private val modelsBox = ObjectBoxStore.store.boxFor(LLMModel::class.java)
+class ModelsDB(
+    context: Context,
+) {
+    private val db =
+        Room
+            .databaseBuilder(
+                context,
+                LLMModelDatabase::class.java,
+                "llm-model-database",
+            ).build()
 
     fun addModel(
         name: String,
@@ -44,8 +81,8 @@ class ModelsDB {
         path: String,
         contextSize: Int,
         chatTemplate: String,
-    ) {
-        modelsBox.put(
+    ) = runBlocking(Dispatchers.IO) {
+        db.llmModelDao().insertModels(
             LLMModel(
                 name = name,
                 url = url,
@@ -57,22 +94,20 @@ class ModelsDB {
     }
 
     fun getModel(id: Long): LLMModel? =
-        try {
-            modelsBox.get(id)
-        } catch (e: IllegalArgumentException) {
-            null
+        runBlocking(Dispatchers.IO) {
+            try {
+                db.llmModelDao().getModel(id)
+            } catch (_: IllegalArgumentException) {
+                null
+            }
         }
 
-    fun getModels(): Flow<List<LLMModel>> =
-        modelsBox
-            .query()
-            .build()
-            .flow()
-            .flowOn(Dispatchers.IO)
+    fun getModels(): Flow<List<LLMModel>> = runBlocking(Dispatchers.IO) { db.llmModelDao().getAllModels() }
 
-    fun getModelsList(): List<LLMModel> = modelsBox.all
+    fun getModelsList(): List<LLMModel> = runBlocking(Dispatchers.IO) { db.llmModelDao().getAllModelsList() }
 
-    fun deleteModel(id: Long) {
-        modelsBox.remove(id)
-    }
+    fun deleteModel(id: Long) =
+        runBlocking(Dispatchers.IO) {
+            db.llmModelDao().deleteModel(id)
+        }
 }

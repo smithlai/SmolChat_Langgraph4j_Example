@@ -16,23 +16,31 @@
 
 package io.shubham0204.smollmandroid.data
 
+import android.content.Context
 import android.util.Log
-import io.objectbox.annotation.Entity
-import io.objectbox.annotation.Id
-import io.objectbox.kotlin.flow
+import androidx.room.Dao
+import androidx.room.Database
+import androidx.room.Entity
+import androidx.room.Insert
+import androidx.room.PrimaryKey
+import androidx.room.Query
+import androidx.room.Room
+import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
+import androidx.room.Update
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.runBlocking
 import org.koin.core.annotation.Single
 import java.util.Date
 
 private const val LOGTAG = "[ChatDB-Kt]"
 private val LOGD: (String) -> Unit = { Log.d(LOGTAG, it) }
 
-@Entity
+@Entity(tableName = "Chat")
 data class Chat(
-    @Id var id: Long = 0,
+    @PrimaryKey(autoGenerate = true) var id: Long = 0,
     /**
      * Name of the chat, as shown in the UI
      * This is editable by users in the EditChatSettingsScreen.kt
@@ -88,19 +96,48 @@ data class Chat(
     var isTask: Boolean = false,
 )
 
+@Dao
+interface ChatsDao {
+    @Query("SELECT * FROM Chat")
+    fun getChats(): Flow<List<Chat>>
+
+    @Insert
+    suspend fun insertChat(chat: Chat): Long
+
+    @Query("SELECT * FROM Chat ORDER BY dateUsed DESC LIMIT 1")
+    suspend fun getRecentlyUsedChat(): Chat?
+
+    @Query("DELETE FROM Chat WHERE id = :chatId")
+    suspend fun deleteChat(chatId: Long)
+
+    @Update
+    suspend fun updateChat(chat: Chat)
+
+    @Query("SELECT COUNT(*) FROM Chat")
+    suspend fun getChatsCount(): Long
+}
+
+@Database(entities = [Chat::class], version = 1)
+@TypeConverters(Converters::class)
+abstract class ChatsDatabase : RoomDatabase() {
+    abstract fun chatsDao(): ChatsDao
+}
+
 @Single
-class ChatsDB {
-    private val chatsBox = ObjectBoxStore.store.boxFor(Chat::class.java)
+class ChatsDB(
+    context: Context,
+) {
+    private val db =
+        Room
+            .databaseBuilder(
+                context,
+                ChatsDatabase::class.java,
+                "chats-database",
+            ).build()
 
     /** Get all chats from the database sorted by dateUsed in descending order. */
     @OptIn(ExperimentalCoroutinesApi::class)
-    fun getChats(): Flow<List<Chat>> =
-        chatsBox
-            .query()
-            .orderDesc(Chat_.dateUsed)
-            .build()
-            .flow()
-            .flowOn(Dispatchers.IO)
+    fun getChats(): Flow<List<Chat>> = db.chatsDao().getChats()
 
     fun loadDefaultChat(): Chat {
         val defaultChat =
@@ -121,11 +158,9 @@ class ChatsDB {
      * are no chats in the database.
      */
     fun getRecentlyUsedChat(): Chat? =
-        chatsBox
-            .query()
-            .orderDesc(Chat_.dateUsed)
-            .build()
-            .findFirst()
+        runBlocking(Dispatchers.IO) {
+            db.chatsDao().getRecentlyUsedChat()
+        }
 
     /**
      * Adds a new chat to the database initialized with given
@@ -137,30 +172,36 @@ class ChatsDB {
         systemPrompt: String = "You are a helpful assistant.",
         llmModelId: Long = -1,
         isTask: Boolean = false,
-    ): Chat {
-        val newChat =
-            Chat(
-                name = chatName,
-                systemPrompt = systemPrompt,
-                dateCreated = Date(),
-                dateUsed = Date(),
-                llmModelId = llmModelId,
-                contextSize = 2048,
-                chatTemplate = chatTemplate,
-                isTask = isTask,
-            )
-        val newChatId = chatsBox.put(newChat)
-        return newChat.copy(id = newChatId)
-    }
+    ): Chat =
+        runBlocking(Dispatchers.IO) {
+            val newChat =
+                Chat(
+                    name = chatName,
+                    systemPrompt = systemPrompt,
+                    dateCreated = Date(),
+                    dateUsed = Date(),
+                    llmModelId = llmModelId,
+                    contextSize = 2048,
+                    chatTemplate = chatTemplate,
+                    isTask = isTask,
+                )
+            val newChatId = db.chatsDao().insertChat(newChat)
+            newChat.copy(id = newChatId)
+        }
 
-    /** Update the chat in the database. ObjectBox overwrites the entry if it already exists. */
-    fun updateChat(modifiedChat: Chat) {
-        chatsBox.put(modifiedChat)
-    }
+    /** Update the chat in the database. */
+    fun updateChat(modifiedChat: Chat) =
+        runBlocking(Dispatchers.IO) {
+            db.chatsDao().updateChat(modifiedChat)
+        }
 
-    fun deleteChat(chat: Chat) {
-        chatsBox.remove(chat)
-    }
+    fun deleteChat(chat: Chat) =
+        runBlocking(Dispatchers.IO) {
+            db.chatsDao().deleteChat(chat.id)
+        }
 
-    fun getChatsCount(): Long = chatsBox.count()
+    fun getChatsCount(): Long =
+        runBlocking(Dispatchers.IO) {
+            db.chatsDao().getChatsCount()
+        }
 }

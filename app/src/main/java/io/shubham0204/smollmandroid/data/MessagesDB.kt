@@ -16,52 +16,85 @@
 
 package io.shubham0204.smollmandroid.data
 
-import io.objectbox.annotation.Entity
-import io.objectbox.annotation.Id
-import io.objectbox.kotlin.flow
+import android.content.Context
+import androidx.room.Dao
+import androidx.room.Database
+import androidx.room.Entity
+import androidx.room.Insert
+import androidx.room.PrimaryKey
+import androidx.room.Query
+import androidx.room.Room
+import androidx.room.RoomDatabase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.runBlocking
 import org.koin.core.annotation.Single
 
-@Entity
+@Entity(tableName = "ChatMessage")
 data class ChatMessage(
-    @Id var id: Long = 0,
+    @PrimaryKey(autoGenerate = true) var id: Long = 0,
     var chatId: Long = 0,
     var message: String = "",
     var isUserMessage: Boolean = false,
 )
 
+@Dao
+interface ChatMessageDao {
+    @Query("SELECT * FROM ChatMessage WHERE chatId = :chatId")
+    fun getMessages(chatId: Long): Flow<List<ChatMessage>>
+
+    @Query("SELECT * FROM ChatMessage WHERE chatId = :chatId")
+    suspend fun getMessagesForModel(chatId: Long): List<ChatMessage>
+
+    @Insert
+    suspend fun insertMessage(message: ChatMessage)
+
+    @Query("DELETE FROM ChatMessage WHERE chatId = :chatId")
+    suspend fun deleteMessages(chatId: Long)
+}
+
+@Database(entities = [ChatMessage::class], version = 1)
+abstract class ChatMessagesDatabase : RoomDatabase() {
+    abstract fun chatMessagesDao(): ChatMessageDao
+}
+
 @Single
-class MessagesDB {
-    private val messagesBox = ObjectBoxStore.store.boxFor(ChatMessage::class.java)
+class MessagesDB(
+    context: Context,
+) {
+    private val db =
+        Room
+            .databaseBuilder(
+                context,
+                ChatMessagesDatabase::class.java,
+                "chat-messages-database",
+            ).build()
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    fun getMessages(chatId: Long): Flow<List<ChatMessage>> =
-        messagesBox
-            .query(ChatMessage_.chatId.equal(chatId))
-            .build()
-            .flow()
-            .flowOn(Dispatchers.IO)
+    fun getMessages(chatId: Long): Flow<List<ChatMessage>> = db.chatMessagesDao().getMessages(chatId)
 
-    fun getMessagesForModel(chatId: Long): List<ChatMessage> = messagesBox.query(ChatMessage_.chatId.equal(chatId)).build().find()
+    fun getMessagesForModel(chatId: Long): List<ChatMessage> =
+        runBlocking(Dispatchers.IO) {
+            db.chatMessagesDao().getMessagesForModel(chatId)
+        }
 
     fun addUserMessage(
         chatId: Long,
         message: String,
-    ) {
-        messagesBox.put(ChatMessage(chatId = chatId, message = message, isUserMessage = true))
+    ) = runBlocking(Dispatchers.IO) {
+        db.chatMessagesDao().insertMessage(ChatMessage(chatId = chatId, message = message, isUserMessage = true))
     }
 
     fun addAssistantMessage(
         chatId: Long,
         message: String,
-    ) {
-        messagesBox.put(ChatMessage(chatId = chatId, message = message, isUserMessage = false))
+    ) = runBlocking(Dispatchers.IO) {
+        db.chatMessagesDao().insertMessage(ChatMessage(chatId = chatId, message = message, isUserMessage = false))
     }
 
-    fun deleteMessages(chatId: Long) {
-        messagesBox.query(ChatMessage_.chatId.equal(chatId)).build().remove()
-    }
+    fun deleteMessages(chatId: Long) =
+        runBlocking(Dispatchers.IO) {
+            db.chatMessagesDao().deleteMessages(chatId)
+        }
 }

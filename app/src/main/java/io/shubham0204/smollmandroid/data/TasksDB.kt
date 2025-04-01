@@ -16,18 +16,25 @@
 
 package io.shubham0204.smollmandroid.data
 
-import io.objectbox.annotation.Entity
-import io.objectbox.annotation.Id
-import io.objectbox.kotlin.flow
+import android.content.Context
+import androidx.room.Dao
+import androidx.room.Database
+import androidx.room.Entity
+import androidx.room.Insert
+import androidx.room.PrimaryKey
+import androidx.room.Query
+import androidx.room.Room
+import androidx.room.RoomDatabase
+import androidx.room.Update
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.runBlocking
 import org.koin.core.annotation.Single
 
-@Entity
+@Entity(tableName = "Task")
 data class Task(
-    @Id var id: Long = 0,
+    @PrimaryKey(autoGenerate = true) var id: Long = 0,
     var name: String = "",
     var systemPrompt: String = "",
     var modelId: Long = -1,
@@ -35,33 +42,64 @@ data class Task(
     @Transient var modelName: String = "",
 )
 
-@Single
-class TasksDB {
-    private val tasksBox = ObjectBoxStore.store.boxFor(Task::class.java)
+@Dao
+interface TaskDao {
+    @Query("SELECT * FROM Task WHERE id = :taskId")
+    suspend fun getTask(taskId: Long): Task
 
-    fun getTask(taskId: Long): Task? = tasksBox.get(taskId)
+    @Query("SELECT * FROM Task")
+    fun getTasks(): Flow<List<Task>>
+
+    @Insert
+    suspend fun insertTask(task: Task)
+
+    @Update
+    suspend fun updateTask(task: Task)
+
+    @Query("DELETE FROM Task WHERE id = :taskId")
+    suspend fun deleteTask(taskId: Long)
+}
+
+@Database(entities = [Task::class], version = 1)
+abstract class TaskDatabase : RoomDatabase() {
+    abstract fun taskDao(): TaskDao
+}
+
+@Single
+class TasksDB(
+    context: Context,
+) {
+    private val db =
+        Room
+            .databaseBuilder(
+                context,
+                TaskDatabase::class.java,
+                "task-database",
+            ).build()
+
+    fun getTask(taskId: Long): Task? =
+        runBlocking(Dispatchers.IO) {
+            db.taskDao().getTask(taskId)
+        }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    fun getTasks(): Flow<List<Task>> =
-        tasksBox
-            .query()
-            .build()
-            .flow()
-            .flowOn(Dispatchers.IO)
+    fun getTasks(): Flow<List<Task>> = db.taskDao().getTasks()
 
     fun addTask(
         name: String,
         systemPrompt: String,
         modelId: Long,
-    ) {
-        tasksBox.put(Task(name = name, systemPrompt = systemPrompt, modelId = modelId))
+    ) = runBlocking(Dispatchers.IO) {
+        db.taskDao().insertTask(Task(name = name, systemPrompt = systemPrompt, modelId = modelId))
     }
 
-    fun deleteTask(taskId: Long) {
-        tasksBox.remove(taskId)
-    }
+    fun deleteTask(taskId: Long) =
+        runBlocking(Dispatchers.IO) {
+            db.taskDao().deleteTask(taskId)
+        }
 
-    fun updateTask(task: Task) {
-        tasksBox.put(task)
-    }
+    fun updateTask(task: Task) =
+        runBlocking(Dispatchers.IO) {
+            db.taskDao().updateTask(task)
+        }
 }

@@ -63,7 +63,7 @@ git submodule update --init --recursive
    the required methods to interact with the JNI (C++ side) bindings.
 
 3. The `app` module contains the application logic and UI code. Whenever a new chat is opened, the app instantiates 
-   the `SmolLM` class and provides it the model file-path which is stored by the [`LLMModel`](https://github.com/shubham0204/SmolChat-Android/blob/main/app/src/main/java/io/shubham0204/smollmandroid/data/DataModels.kt) entity in the ObjectBox.
+   the `SmolLM` class and provides it the model file-path which is stored by the [`LLMModel`](https://github.com/shubham0204/SmolChat-Android/blob/main/app/src/main/java/io/shubham0204/smollmandroid/data/DataModels.kt) entity.
    Next, the app adds messages with role `user` and `system` to the chat by retrieving them from the database and
    using `LLMInference::addChatMessage`.
 
@@ -76,10 +76,6 @@ git submodule update --init --recursive
   models on multiple execution backends. It provides a primitive C-style API to interact with LLMs 
   converted to the [GGUF format](https://github.com/ggerganov/ggml/blob/master/docs/gguf.md) native to [ggml](https://github.com/ggerganov/ggml)/llama.cpp. The app uses JNI bindings to interact with a small class `smollm.
   cpp` which uses llama.cpp to load and execute GGUF models.
-
-* [ObjectBox](https://objectbox.io) is a on-device, high-performance NoSQL database with bindings available in multiple 
-  languages. The app 
-  uses ObjectBox to store the model, chat and message metadata.
 
 * [noties/Markwon](https://github.com/noties/Markwon) is a markdown rendering library for Android. The app uses 
   Markwon and [Prism4j](https://github.com/noties/Prism4j) (for code syntax highlighting) to render Markdown responses 
@@ -107,7 +103,7 @@ git submodule update --init --recursive
 The following features/tasks are planned for the future releases of the app:
 
 - Assign names to chats automatically (just like ChatGPT and Claude)
-- Add a search bar to the navigation drawer to search for messages within chats using ObjectBox's query capabilities
+- Add a search bar to the navigation drawer to search for messages within chats
 - Add a background service which uses BlueTooth/HTTP/WiFi to communicate with a desktop application to send queries 
   from the desktop to the mobile device for inference
 - Enable auto-scroll when generating partial response in `ChatActivity`

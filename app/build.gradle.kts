@@ -92,10 +92,6 @@ dependencies {
     implementation(libs.androidx.ui.text.google.fonts)
     ksp(libs.koin.ksp.compiler)
 
-    // ObjectBox: on-device NoSQL database
-    debugImplementation("io.objectbox:objectbox-android-objectbrowser:4.0.3")
-    releaseImplementation("io.objectbox:objectbox-android:4.0.3")
-
     // compose-markdown: Markdown rendering in Compose
     implementation("io.noties.markwon:core:4.6.2")
     implementation("io.noties.markwon:ext-latex:4.6.2")
@@ -113,6 +109,12 @@ dependencies {
     implementation("androidx.paging:paging-runtime:$pagingVersion")
     implementation("androidx.paging:paging-compose:$pagingVersion")
 
+    // Android Room: Local persistence with SQLite
+    val roomVersion = "2.6.1"
+    implementation("androidx.room:room-runtime:$roomVersion")
+    ksp("androidx.room:room-compiler:$roomVersion")
+    implementation("androidx.room:room-ktx:$roomVersion")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -121,5 +123,3 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 }
-
-apply(plugin = "io.objectbox")
