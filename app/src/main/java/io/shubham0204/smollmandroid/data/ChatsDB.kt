@@ -98,7 +98,7 @@ data class Chat(
 
 @Dao
 interface ChatsDao {
-    @Query("SELECT * FROM Chat")
+    @Query("SELECT * FROM Chat ORDER BY dateUsed DESC")
     fun getChats(): Flow<List<Chat>>
 
     @Insert
