@@ -20,6 +20,15 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
+      - name: Setup Android NDK
+        uses: nttld/setup-ndk@v1
+        id: setup-ndk
+        with:
+          ndk-version: r27c
+          add-to-path: true
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+
       - name: Decode keystore
         env:
           ENCODED_STRING: ${{ secrets.KEYSTORE_BASE_64 }}
