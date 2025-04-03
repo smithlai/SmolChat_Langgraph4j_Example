@@ -1,8 +1,5 @@
 import java.net.URI
 
-include(":hf-model-hub-api")
-
-
 pluginManagement {
     repositories {
         google {
@@ -29,3 +26,4 @@ dependencyResolutionManagement {
 rootProject.name = "SmolChat Android"
 include(":app")
 include(":smollm")
+include(":hf-model-hub-api")
