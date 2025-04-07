@@ -1,4 +1,5 @@
-- Add translations for zh-CN (Chinese Simplified) (#47)
-- Add dark-theme to the app (#25)
-- Off-load model when the app is not visible on the screen (#52)
-- Add more options for configuring chat - `use_mmap`, `use_mlock`, `chat_template` and `n_threads` (#38)
+- The app can now receive the text of the query from other apps (on clicking 'Share' in other apps, SmolChat will be listed as one of the options).
+- The app can create dynamic shortcuts for specific tasks. These shortcuts can also be added to the home screen for quick access. (#2)
+- Migrated from ObjectBox to Room (particularly for #58)
+- The app now has a custom icon (do let me know if it can improved)
+- There was issue with the CI that caused the build process to not strip symbols from native libraries, increasing the size of the APK. This has been fixed, thus reducing the size of the APK.
