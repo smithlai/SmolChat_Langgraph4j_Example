@@ -39,6 +39,22 @@
 </tr>
 </table>
 
+## Installation
+
+### GitHub
+
+1. Download the latest APK from [GitHub Releases](https://github.com/shubham0204/SmolChat-Android/releases/) and transfer it to your Android device.
+2. If your device does not downloading APKs from untrusted sources, search for **how to allow downloading APKs from unknown sources** for your device.
+
+### Obtainium
+
+[Obtainium](https://obtainium.imranr.dev/) allows users to update/download apps directly from their sources, like GitHub or FDroid. 
+
+1. [Download the Obtainium app](https://obtainium.imranr.dev/) by choosing your device architecture or 'Download Universal APK'.
+2. From the bottom menu, select '➕Add App'
+3. In the text field labelled 'App source URL *', enter the following URL and click 'Add' besides the text field: `https://github.com/shubham0204/SmolChat-Android`
+4. SmolChat should now be visible in the 'Apps' screen. You can get notifications about newer releases and download them directly without going to the GitHub repo.
+
 ## Project Goals
 
 - Provide a usable user interface to interact with local SLMs (small language models) locally, on-device
