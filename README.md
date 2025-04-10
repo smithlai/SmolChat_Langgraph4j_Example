@@ -3,30 +3,38 @@
 <table>
 <tr>
 <td>
-<img src="resources/app_screenshots/pic1.png" alt="app_img_01">
+<img src="resources/app_screenshots/1.jpg" alt="app_img_01">
 </td>
 <td>
-<img src="resources/app_screenshots/pic2.png" alt="app_img_02">
+<img src="resources/app_screenshots/2.jpg" alt="app_img_02">
 </td>
 <td>
-<img src="resources/app_screenshots/pic3.png" alt="app_img_03">
+<img src="resources/app_screenshots/3.jpg" alt="app_img_03">
 </td>
 <td>
-<img src="resources/app_screenshots/pic4.png" alt="app_img_03">
+<img src="resources/app_screenshots/4.jpg" alt="app_img_04">
 </td>
 </tr>
 <tr>
 <td>
-<img src="resources/app_screenshots/pic5.png" alt="app_img_04">
+<img src="resources/app_screenshots/5.jpg" alt="app_img_05">
 </td>
 <td>
-<img src="resources/app_screenshots/pic6.png" alt="app_img_05">
+<img src="resources/app_screenshots/6.jpg" alt="app_img_06">
 </td>
 <td>
-<img src="resources/app_screenshots/pic7.png" alt="app_img_06">
+<img src="resources/app_screenshots/7.jpg" alt="app_img_07">
 </td>
 <td>
-<img src="resources/app_screenshots/pic8.png" alt="app_img_07">
+<img src="resources/app_screenshots/8.jpg" alt="app_img_08">
+</td>
+</tr>
+<tr>
+<td>
+<img src="resources/app_screenshots/9.jpg" alt="app_img_09">
+</td>
+<td>
+<img src="resources/app_screenshots/10.jpg" alt="app_img_10">
 </td>
 </tr>
 </table>
@@ -108,7 +116,5 @@ The following features/tasks are planned for the future releases of the app:
   from the desktop to the mobile device for inference
 - Enable auto-scroll when generating partial response in `ChatActivity`
 - Measure RAM consumption
-- Add [app shortcuts](https://developer.android.com/develop/ui/views/launch/shortcuts) for tasks
 - Integrate [Android-Doc-QA](https://github.com/shubham0204/Android-Document-QA) for on-device RAG-based question answering from documents
 - Check if llama.cpp can be compiled to use Vulkan for inference on Android devices (and use the mobile GPU)
-- Check if multilingual GGUF models can be supported
