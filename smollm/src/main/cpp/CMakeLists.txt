@@ -72,7 +72,7 @@ set(GGUF_READER_SOURCES
 # compiling for different CPU extensions for Arm64 (aarch64)
 # See docs/build_arm_flags.md for more details
 
-function(build_library target_name cpu_flags)
+function(build_library target_name)
     add_library(
             ${target_name}
             SHARED
@@ -92,11 +92,6 @@ function(build_library target_name cpu_flags)
     # targets `llama` and `common` are linked to `ggml`,
     # thus inheriting the same compile options
 
-    target_compile_options(
-            ${target_name}
-            PUBLIC
-            -DGGML_USE_CPU -DGGML_USE_CPU_AARCH64 ${cpu_flags} -O3
-    )
     # -fvisibility=hidden: hide all symbols by default
     # -fvisibility-inlines-hidden: hide all inline symbols by default
     target_compile_options(
@@ -127,18 +122,49 @@ function(build_library target_name cpu_flags)
     )
 endfunction()
 
-build_library("smollm" "")
+
+function(build_library_arm64 target_name cpu_flags)
+    build_library(${target_name})
+    target_compile_options(
+            ${target_name}
+            PUBLIC
+            -DGGML_USE_CPU -DGGML_USE_CPU_AARCH64 ${cpu_flags} -O3
+    )
+endfunction()
+
+function(build_library_armv7a target_name cpu_flags fpu fpu_abi)
+    build_library(${target_name})
+    target_compile_options(
+            ${target_name}
+            PUBLIC
+            -DGGML_USE_CPU ${cpu_flags} ${fpu} ${fpu_abi} -O3
+    )
+endfunction()
+
+function(build_library_universal target_name)
+    build_library(${target_name})
+    target_compile_options(
+            ${target_name}
+            PUBLIC
+            -DGGML_USE_CPU -O3
+    )
+endfunction()
+
+build_library_universal("smollm")
+if (${ANDROID_ABI} STREQUAL "armeabi-v7a")
+    build_library_armv7a("smollm_v7a" "-march=armv7-a" "-mfpu=neon-vfpv4" "-mfloat-abi=softfp")
+endif()
 if (${ANDROID_ABI} STREQUAL "arm64-v8a")
-    build_library("smollm_v8" "-march=armv8-a")
+    build_library_arm64("smollm_v8" "-march=armv8-a")
     # Targets for Arm-v8.2a
-    build_library("smollm_v8_2_fp16" "-march=armv8.2-a+fp16")
-    build_library("smollm_v8_2_fp16_dotprod" "-march=armv8.2-a+fp16+dotprod")
+    build_library_arm64("smollm_v8_2_fp16" "-march=armv8.2-a+fp16")
+    build_library_arm64("smollm_v8_2_fp16_dotprod" "-march=armv8.2-a+fp16+dotprod")
 
     # Targets for Arm-v8.4a
-    build_library("smollm_v8_4_fp16_dotprod" "-march=armv8.4-a+fp16+dotprod")
-    build_library("smollm_v8_4_fp16_dotprod_sve" "-march=armv8.4-a+fp16+dotprod+sve")
-    build_library("smollm_v8_4_fp16_dotprod_i8mm" "-march=armv8.4-a+fp16+dotprod+i8mm")
-    build_library("smollm_v8_4_fp16_dotprod_i8mm_sve" "-march=armv8.4-a+fp16+dotprod+i8mm+sve")
+    build_library_arm64("smollm_v8_4_fp16_dotprod" "-march=armv8.4-a+fp16+dotprod")
+    build_library_arm64("smollm_v8_4_fp16_dotprod_sve" "-march=armv8.4-a+fp16+dotprod+sve")
+    build_library_arm64("smollm_v8_4_fp16_dotprod_i8mm" "-march=armv8.4-a+fp16+dotprod+i8mm")
+    build_library_arm64("smollm_v8_4_fp16_dotprod_i8mm_sve" "-march=armv8.4-a+fp16+dotprod+i8mm+sve")
 endif()
 
 # library target for GGUFReader

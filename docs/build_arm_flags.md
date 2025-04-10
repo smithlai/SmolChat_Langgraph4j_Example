@@ -8,7 +8,7 @@
 - To see how the app loads the appropriate shared library, check [`smollm/src/main/java/io/shubham0204/smollm/SmolLM.kt`](https://github.com/shubham0204/SmolChat-Android/blob/main/smollm/src/main/java/io/shubham0204/smollm/SmolLM.kt).
 
 > [!NOTE]
-> The APK contains multiple `.so` files for the `arm64-v8a` ABI. As the size of each `.so` file < 1 MB, the increase 
+> The APK contains multiple `.so` files for the `arm64-v8a` and `armeabi-v7a` ABIs. As the size of each `.so` file < 1 MB, the increase 
 > in the size of the APK should be insignificant.
 
 ### CPU Extensions
@@ -22,6 +22,24 @@ We are compiling against the following [Arm64-specific CPU flags (feature modifi
 - `i8mm`: Enable 8-bit Integer Matrix Multiply instructions. This also enables Advanced SIMD and floating-point instructions. This option is enabled by default for -march=armv8.6-a. Use of this option with architectures prior to Armv8.2-A is not supported.
 
 - `sve`: Enable Scalable Vector Extension instructions. This also enables Advanced SIMD and floating-point instructions.
+
+#### CPU Extensions for Arm-v7 (32-bit)
+
+The app compiles llama.cpp with the following flags for Arm-v7a (32-bit) devices:
+
+- `-mfpu=neon-vfpv4`: Enable the Armv7 VFPv4 floating-point extension and the Advanced SIMD extension.
+
+- `-mfloat-abi=softfp`: Specifies whether to use hardware instructions or software library functions for floating-point operations, and which registers are used to pass floating-point parameters and return values. `softfp` enables hardware floating-point instructions and software floating-point linkage.
+
+You may also check the official [Arm Compiler CMD options](https://developer.arm.com/documentation/dui0774/l/Compiler-Command-line-Options).
+
+The following metrics were observed on a [Samsung M02 device](https://www.gsmarena.com/samsung_galaxy_m02-10709.php) when benchmarking llama.cpp using different arm-v7a flags. The model used was [SmolLM2-360M-Instruct-GGUF](https://huggingface.co/HuggingFaceTB/SmolLM2-360M-Instruct-GGUF/tree/main):
+
+| Flags                                              | pp (512) | tg (128) |
+|----------------------------------------------------|----------|----------|
+| -march=armv7-a -mfpu=neon-vfpv4 -mfloat-abi=softfp |      4.7 |      7.5 |
+| -march=armv7-a                                     |       11 |      8.4 |
+| <None>                                             |       11 |      8.4 |
 
 ### Configuring CMake
 
