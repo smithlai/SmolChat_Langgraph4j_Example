@@ -417,7 +417,7 @@ private fun LazyItemScope.MessageListItem(
                     contentDescription = null,
                 )
             }
-            Column(modifier = Modifier) {
+            Column {
                 ChatMessageText(
                     // to make pointerInput work in MarkdownText use disableLinkMovementMethod
                     // https://github.com/jeziellago/compose-markdown/issues/85#issuecomment-2184040304
@@ -436,13 +436,13 @@ private fun LazyItemScope.MessageListItem(
                     Text(
                         text = stringResource(R.string.chat_message_copy),
                         modifier = Modifier.clickable { onCopyClicked() },
-                        fontSize = 8.sp,
+                        fontSize = 6.sp,
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = stringResource(R.string.chat_message_share),
                         modifier = Modifier.clickable { onShareClicked() },
-                        fontSize = 8.sp,
+                        fontSize = 6.sp,
                     )
                     responseGenerationSpeed?.let {
                         Spacer(modifier = Modifier.width(6.dp))
@@ -483,17 +483,33 @@ private fun LazyItemScope.MessageListItem(
                     .animateItem(),
             horizontalArrangement = Arrangement.End,
         ) {
-            ChatMessageText(
-                modifier =
-                    Modifier
-                        .padding(8.dp)
-                        .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(16.dp))
-                        .padding(8.dp)
-                        .widthIn(max = 250.dp),
-                textColor = android.graphics.Color.WHITE,
-                textSize = 16f,
-                message = messageStr,
-            )
+            Column(horizontalAlignment = Alignment.End) {
+                ChatMessageText(
+                    modifier =
+                        Modifier
+                            .padding(8.dp)
+                            .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(16.dp))
+                            .padding(8.dp)
+                            .widthIn(max = 250.dp),
+                    textColor = android.graphics.Color.WHITE,
+                    textSize = 16f,
+                    message = messageStr,
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = stringResource(R.string.chat_message_copy),
+                        modifier = Modifier.clickable { onCopyClicked() },
+                        fontSize = 6.sp,
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(R.string.chat_message_share),
+                        modifier = Modifier.clickable { onShareClicked() },
+                        fontSize = 6.sp,
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                }
+            }
         }
     }
 }
