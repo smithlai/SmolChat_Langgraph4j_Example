@@ -117,10 +117,10 @@ fun ViewHFModelScreen(
             ) { innerPadding ->
                 Column(
                     modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.background)
-                        .padding(innerPadding),
+                        Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.background)
+                            .padding(innerPadding),
                 ) {
                     LaunchedEffect(0) {
                         viewModel.fetchModelInfoAndTree(modelId)
@@ -181,10 +181,10 @@ private fun GGUFModelListItem(
     val fileSizeGB = modelFile.size / 1e+9
     Column(
         modifier =
-        Modifier
-            .clickable { onModelFileClick(modelFile) }
-            .padding(8.dp)
-            .fillMaxWidth(),
+            Modifier
+                .clickable { onModelFileClick(modelFile) }
+                .padding(8.dp)
+                .fillMaxWidth(),
     ) {
         Text(
             text = modelFile.path,
@@ -195,7 +195,7 @@ private fun GGUFModelListItem(
                 if (fileSizeGB < 1) {
                     "${(fileSizeGB * 1000).toInt()} MB"
                 } else {
-                    "${fileSizeGB.toInt()} GB"
+                    "%.2f GB".format(fileSizeGB)
                 },
             style = MaterialTheme.typography.labelLarge,
         )
