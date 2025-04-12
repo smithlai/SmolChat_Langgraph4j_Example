@@ -17,6 +17,7 @@
 package io.shubham0204.smollmandroid.ui.screens.model_download
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.provider.DocumentsContract
@@ -70,7 +71,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import io.shubham0204.smollmandroid.R
 import io.shubham0204.smollmandroid.llm.exampleModelsList
+import io.shubham0204.smollmandroid.ui.components.AppAlertDialog
 import io.shubham0204.smollmandroid.ui.components.AppProgressDialog
+import io.shubham0204.smollmandroid.ui.components.createAlertDialog
 import io.shubham0204.smollmandroid.ui.screens.chat.ChatActivity
 import io.shubham0204.smollmandroid.ui.theme.SmolLMAndroidTheme
 import org.koin.android.ext.android.inject
@@ -136,7 +139,18 @@ class DownloadModelActivity : ComponentActivity() {
             rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { activityResult ->
                 activityResult.data?.let {
                     it.data?.let { uri ->
-                        viewModel.copyModelFile(uri, onComplete = { openChatActivity() })
+                        if (checkGGUFFile(uri)) {
+                            viewModel.copyModelFile(uri, onComplete = { openChatActivity() })
+                        } else {
+                            createAlertDialog(
+                                dialogTitle = "Invalid File",
+                                dialogText = "The selected file is not a valid GGUF file.",
+                                dialogPositiveButtonText = "OK",
+                                onPositiveButtonClick = {},
+                                dialogNegativeButtonText = null,
+                                onNegativeButtonClick = null,
+                            )
+                        }
                     }
                 }
             }
@@ -222,6 +236,7 @@ class DownloadModelActivity : ComponentActivity() {
                     }
                 }
                 AppProgressDialog()
+                AppAlertDialog()
             }
         }
     }
@@ -244,8 +259,7 @@ class DownloadModelActivity : ComponentActivity() {
                             RoundedCornerShape(
                                 8.dp,
                             ),
-                        )
-                        .padding(8.dp),
+                        ).padding(8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     if (model == selectedModel) {
@@ -283,5 +297,17 @@ class DownloadModelActivity : ComponentActivity() {
                     keyboardType = androidx.compose.ui.text.input.KeyboardType.Uri,
                 ),
         )
+    }
+
+    // check if the first four bytes of the file
+    // represent the GGUF magic number
+    // see:https://github.com/ggml-org/ggml/blob/master/docs/gguf.md#file-structure
+    private fun checkGGUFFile(uri: Uri): Boolean {
+        contentResolver.openInputStream(uri)?.use { inputStream ->
+            val ggufMagicNumberBytes = ByteArray(4)
+            inputStream.read(ggufMagicNumberBytes)
+            return ggufMagicNumberBytes.contentEquals(byteArrayOf(71, 71, 85, 70))
+        }
+        return false
     }
 }
