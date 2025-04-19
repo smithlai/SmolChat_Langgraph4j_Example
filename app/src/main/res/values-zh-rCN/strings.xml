@@ -46,6 +46,7 @@
     <string name="chat_settings_desc_minp">minP 是一种采样技术，它限制了大型语言模型 (LLM) 推理过程中的词汇选择，确保只考虑概率超过 minP 阈值的标记，从而产生更集中、更少随机的输出。</string>
     <string name="chat_settings_desc_temp">温度是一个控制大型语言模型 (LLM) 输出的随机性和创造性的参数，较低的温度会产生更具确定性和重点的响应，而较高的温度则会导致更多样化和创造性的输出。</string>
     <string name="chat_settings_desc_ctx_length">大型语言模型 (LLM) 的上下文长度是指它在单个输入或输出序列中可以处理的最大标记数（单词或子词）。更大的上下文需要更多的内存。</string>
+    <string name="chat_settings_desc_n_threads">用于推理的 CPU 线程数</string>
     <string name="chat_settings_label_ctx_size">上下文大小</string>
     <string name="chat_settings_label_temp">温度</string>
     <string name="chat_settings_label_minp">min-p</string>

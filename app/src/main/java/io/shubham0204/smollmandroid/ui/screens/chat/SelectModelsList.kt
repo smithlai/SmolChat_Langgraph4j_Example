@@ -85,8 +85,8 @@ fun SelectModelsList(
         Dialog(onDismissRequest = onDismissRequest) {
             Column(
                 modifier =
-                Modifier
-                    .fillMaxWidth()
+                    Modifier
+                        .fillMaxWidth()
                         .background(MaterialTheme.colorScheme.surfaceContainer, RoundedCornerShape(8.dp))
                         .padding(16.dp),
             ) {
@@ -128,7 +128,7 @@ fun SelectModelsList(
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier =
-                        Modifier
+                            Modifier
                                 .align(Alignment.End)
                                 .clickable(
                                     interactionSource = remember { MutableInteractionSource() },
@@ -219,8 +219,8 @@ private fun ModelListItem(
                 .background(MaterialTheme.colorScheme.surfaceContainerHighest)
                 .padding(4.dp)
                 .clip(RoundedCornerShape(8.dp))
-            .clickable { onModelListItemClick(model) }
-            .fillMaxWidth(),
+                .clickable { onModelListItemClick(model) }
+                .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(modifier = Modifier.weight(1f)) {
@@ -243,7 +243,7 @@ private fun ModelListItem(
                 onClick = {
                     createAlertDialog(
                         dialogTitle = context.getString(R.string.dialog_title_delete_chat),
-                        dialogText = context.getString(R.string.dialog_text_delete_chat),
+                        dialogText = context.getString(R.string.dialog_text_delete_chat).format(model.name),
                         dialogPositiveButtonText = context.getString(R.string.dialog_pos_delete),
                         dialogNegativeButtonText = context.getString(R.string.dialog_neg_cancel),
                         onPositiveButtonClick = { onModelDeleteClick(model) },

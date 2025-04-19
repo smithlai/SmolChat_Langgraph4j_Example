@@ -31,6 +31,7 @@
     <string name="chat_settings_desc_minp">minP is a sampling technique that limits the vocabulary choices during LLM inference, ensuring that only tokens with probabilities exceeding the minP threshold are considered, leading to more focused and less random outputs.</string>
     <string name="chat_settings_desc_temp">Temperature is a parameter that controls the randomness and creativity of LLM outputs, with lower temperatures producing more deterministic and focused responses, and higher temperatures leading to more diverse and creative outputs.</string>
     <string name="chat_settings_desc_ctx_length">The context length of a large language model (LLM) refers to the maximum number of tokens (words or subwords) it can process in a single input or output sequence. Larger context sizes need more memory.</string>
+    <string name="chat_settings_desc_n_threads">The number of CPU threads to use for inference.</string>
     <string name="chat_settings_label_ctx_size">Context Size</string>
     <string name="chat_settings_label_temp">Temperature</string>
     <string name="chat_settings_label_minp">min-p</string>

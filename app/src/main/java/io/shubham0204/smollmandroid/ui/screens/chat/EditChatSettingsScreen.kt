@@ -134,12 +134,12 @@ fun EditChatSettingsScreen(
             ) { paddingValues ->
                 Column(
                     modifier =
-                    Modifier
-                        .background(MaterialTheme.colorScheme.background)
-                        .fillMaxSize()
-                        .padding(16.dp)
-                        .padding(paddingValues)
-                        .verticalScroll(rememberScrollState()),
+                        Modifier
+                            .background(MaterialTheme.colorScheme.background)
+                            .fillMaxSize()
+                            .padding(16.dp)
+                            .padding(paddingValues)
+                            .verticalScroll(rememberScrollState()),
                 ) {
                     TextField(
                         modifier = Modifier.fillMaxWidth(),
@@ -299,7 +299,7 @@ fun EditChatSettingsScreen(
                         style = MaterialTheme.typography.titleMedium,
                     )
                     Text(
-                        text = "num threads desc",
+                        stringResource(R.string.chat_settings_desc_n_threads),
                         style = MaterialTheme.typography.labelSmall,
                     )
                     Slider(
