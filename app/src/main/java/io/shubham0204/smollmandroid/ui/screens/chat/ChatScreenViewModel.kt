@@ -166,7 +166,14 @@ class ChatScreenViewModel(
         loadModel()
     }
 
-    fun sendUserQuery(query: String) {
+    fun deleteMessage(messageId: Long) {
+        messagesDB.deleteMessage(messageId)
+    }
+
+    fun sendUserQuery(
+        query: String,
+        addMessageToDB: Boolean = true,
+    ) {
         _currChatState.value?.let { chat ->
             // Update the 'dateUsed' attribute of the current Chat instance
             // when a query is sent by the user
@@ -179,7 +186,9 @@ class ChatScreenViewModel(
                 messagesDB.deleteMessages(chat.id)
             }
 
-            messagesDB.addUserMessage(chat.id, query)
+            if (addMessageToDB) {
+                messagesDB.addUserMessage(chat.id, query)
+            }
             _isGeneratingResponse.value = true
             _partialResponse.value = ""
             smolLMManager.getResponse(
@@ -254,7 +263,7 @@ class ChatScreenViewModel(
      * -1), then load the model. If not, show the model list dialog. Once the model is finalized,
      * read the system prompt and user messages from the database and add them to the model.
      */
-    fun loadModel() {
+    fun loadModel(onComplete: (ModelLoadingState) -> Unit = {}) {
         // clear resources occupied by the previous model
         smolLMManager.close()
         _currChatState.value?.let { chat ->
@@ -278,6 +287,7 @@ class ChatScreenViewModel(
                     ),
                     onError = { e ->
                         _modelLoadState.value = ModelLoadingState.FAILURE
+                        onComplete(ModelLoadingState.FAILURE)
                         createAlertDialog(
                             dialogTitle = context.getString(R.string.dialog_err_title),
                             dialogText = context.getString(R.string.dialog_err_text, e.message),
@@ -289,6 +299,7 @@ class ChatScreenViewModel(
                     },
                     onSuccess = {
                         _modelLoadState.value = ModelLoadingState.SUCCESS
+                        onComplete(ModelLoadingState.SUCCESS)
                     },
                 )
             }

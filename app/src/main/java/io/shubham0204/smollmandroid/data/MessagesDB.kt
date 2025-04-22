@@ -52,6 +52,9 @@ interface ChatMessageDao {
 
     @Query("DELETE FROM ChatMessage WHERE chatId = :chatId")
     suspend fun deleteMessages(chatId: Long)
+
+    @Query("DELETE FROM ChatMessage WHERE id = :messageId")
+    suspend fun deleteMessage(messageId: Long)
 }
 
 @Database(entities = [ChatMessage::class], version = 1)
@@ -92,6 +95,11 @@ class MessagesDB(
     ) = runBlocking(Dispatchers.IO) {
         db.chatMessagesDao().insertMessage(ChatMessage(chatId = chatId, message = message, isUserMessage = false))
     }
+
+    fun deleteMessage(messageId: Long) =
+        runBlocking(Dispatchers.IO) {
+            db.chatMessagesDao().deleteMessage(messageId)
+        }
 
     fun deleteMessages(chatId: Long) =
         runBlocking(Dispatchers.IO) {

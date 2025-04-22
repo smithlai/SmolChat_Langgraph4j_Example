@@ -75,6 +75,7 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -102,6 +103,7 @@ import io.shubham0204.smollmandroid.data.Chat
 import io.shubham0204.smollmandroid.data.Task
 import io.shubham0204.smollmandroid.ui.components.AppBarTitleText
 import io.shubham0204.smollmandroid.ui.components.MediumLabelText
+import io.shubham0204.smollmandroid.ui.screens.chat.ChatScreenViewModel.ModelLoadingState
 import io.shubham0204.smollmandroid.ui.screens.manage_tasks.ManageTasksActivity
 import io.shubham0204.smollmandroid.ui.screens.manage_tasks.TasksList
 import io.shubham0204.smollmandroid.ui.theme.SmolLMAndroidTheme
@@ -315,6 +317,7 @@ private fun ColumnScope.MessagesList(
     val context = LocalContext.current
     val listState = rememberLazyListState()
     val messages by viewModel.getChatMessages(chatId).collectAsState(emptyList())
+    val lastUserMessageIndex by remember { derivedStateOf { messages.indexOfLast { it.isUserMessage } } }
     val partialResponse by viewModel.partialResponse.collectAsStateWithLifecycle()
     LaunchedEffect(messages.size) {
         if (messages.isNotEmpty()) {
@@ -349,6 +352,28 @@ private fun ColumnScope.MessagesList(
                         },
                     )
                 },
+                onMessageEdited = { newMessage ->
+                    // viewModel.sendUserQuery will add a new message to the chat
+                    // hence we delete the old message and the corresponding LLM
+                    // response if there exists one
+                    // TODO: There should be no need to unload/load the model again
+                    //       as only the conversation messages have changed.
+                    //       Currently there's no native function to edit the conversation messages
+                    //       so unload (remove all messages) and load (add all messages) the model.
+                    viewModel.deleteMessage(chatMessage.id)
+                    if (!messages.last().isUserMessage) {
+                        viewModel.deleteMessage(messages.last().id)
+                    }
+                    viewModel.messagesDB.addUserMessage(chatId, newMessage)
+                    viewModel.unloadModel()
+                    viewModel.loadModel(onComplete = {
+                        if (it == ModelLoadingState.SUCCESS) {
+                            viewModel.sendUserQuery(newMessage, addMessageToDB = false)
+                        }
+                    })
+                },
+                // allow editing the message only if it is the last message in the list
+                allowEditing = (i == lastUserMessageIndex),
             )
         }
         if (isGeneratingResponse) {
@@ -361,6 +386,10 @@ private fun ColumnScope.MessagesList(
                         false,
                         {},
                         {},
+                        onMessageEdited = {
+                            // Not applicable as allowEditing is set to False
+                        },
+                        allowEditing = false,
                     )
                 } else {
                     Row(
@@ -400,8 +429,11 @@ private fun LazyItemScope.MessageListItem(
     isUserMessage: Boolean,
     onCopyClicked: () -> Unit,
     onShareClicked: () -> Unit,
+    onMessageEdited: (String) -> Unit,
     modifier: Modifier = Modifier,
+    allowEditing: Boolean,
 ) {
+    var isEditing by remember { mutableStateOf(false) }
     if (!isUserMessage) {
         Row(
             modifier =
@@ -484,17 +516,39 @@ private fun LazyItemScope.MessageListItem(
             horizontalArrangement = Arrangement.End,
         ) {
             Column(horizontalAlignment = Alignment.End) {
-                ChatMessageText(
-                    modifier =
-                        Modifier
-                            .padding(8.dp)
-                            .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(16.dp))
-                            .padding(8.dp)
-                            .widthIn(max = 250.dp),
-                    textColor = android.graphics.Color.WHITE,
-                    textSize = 16f,
-                    message = messageStr,
-                )
+                var message by remember { mutableStateOf(messageStr.toString()) }
+                if (isEditing) {
+                    TextField(
+                        value = message,
+                        onValueChange = { message = it },
+                        modifier =
+                            Modifier
+                                .padding(8.dp)
+                                .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(16.dp))
+                                .padding(8.dp)
+                                .widthIn(max = 250.dp),
+                        colors =
+                            TextFieldDefaults.colors(
+                                errorContainerColor = Color.Transparent,
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent,
+                                disabledContainerColor = Color.Transparent,
+                            ),
+                    )
+                } else {
+                    ChatMessageText(
+                        modifier =
+                            Modifier
+                                .padding(8.dp)
+                                .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(16.dp))
+                                .padding(8.dp)
+                                .widthIn(max = 250.dp),
+                        textColor = android.graphics.Color.WHITE,
+                        textSize = 16f,
+                        message = messageStr,
+                    )
+                }
+
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = stringResource(R.string.chat_message_copy),
@@ -507,6 +561,36 @@ private fun LazyItemScope.MessageListItem(
                         modifier = Modifier.clickable { onShareClicked() },
                         fontSize = 6.sp,
                     )
+                    if (allowEditing) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        if (isEditing) {
+                            Text(
+                                text = "Done",
+                                modifier =
+                                    Modifier.clickable {
+                                        isEditing = false
+                                        onMessageEdited(message)
+                                    },
+                                fontSize = 6.sp,
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Cancel",
+                                modifier =
+                                    Modifier.clickable {
+                                        isEditing = false
+                                        message = messageStr.toString()
+                                    },
+                                fontSize = 6.sp,
+                            )
+                        } else {
+                            Text(
+                                text = "Edit",
+                                modifier = Modifier.clickable { isEditing = true },
+                                fontSize = 6.sp,
+                            )
+                        }
+                    }
                     Spacer(modifier = Modifier.width(16.dp))
                 }
             }
