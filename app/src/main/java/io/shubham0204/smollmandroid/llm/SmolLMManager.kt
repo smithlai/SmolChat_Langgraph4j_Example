@@ -129,12 +129,13 @@ class SmolLMManager(
                     val duration =
                         measureTime {
                             instance.getResponse(query).collect { piece ->
-                                response += responseTransform(piece)
+                                response += piece
                                 withContext(Dispatchers.Main) {
                                     onPartialResponseGenerated(response)
                                 }
                             }
                         }
+                    response = responseTransform(response)
                     // once the response is generated
                     // add it to the messages database
                     messagesDB.addAssistantMessage(chat!!.id, response)

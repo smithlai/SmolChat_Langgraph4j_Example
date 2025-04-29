@@ -197,7 +197,7 @@ class ChatScreenViewModel(
                     // Replace <think> tags with <blockquote> tags
                     // to get a neat Markdown rendering
                     findThinkTagRegex.replace(it) { matchResult ->
-                        "<blockquote>${matchResult.groupValues[1]}</blockquote>"
+                        "<blockquote><i><h6>${matchResult.groupValues[1].trim()}</i></h6></blockquote>"
                     }
                 },
                 onPartialResponseGenerated = {
