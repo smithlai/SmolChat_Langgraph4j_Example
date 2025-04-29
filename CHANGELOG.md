@@ -1,5 +1,10 @@
-- The app can now receive the text of the query from other apps (on clicking 'Share' in other apps, SmolChat will be listed as one of the options).
-- The app can create dynamic shortcuts for specific tasks. These shortcuts can also be added to the home screen for quick access. (#2)
-- Migrated from ObjectBox to Room (particularly for #58)
-- The app now has a custom icon (do let me know if it can improved)
-- There was issue with the CI that caused the build process to not strip symbols from native libraries, increasing the size of the APK. This has been fixed, thus reducing the size of the APK.
+- Add CPU extensions for `armv7` architecture (32-bit Android devices) to improve inference latency
+- Add 'Copy' and 'Share' actions for messages posted by the user (#68)
+- Sync with upstream llama.cpp
+
+### Minor UI changes
+
+- Show model size in GBs upto 2 decimal places in HuggingFace model explorer
+- Check if the selected file is a GGUF
+- Show model name in model delete dialog
+- Fix rendering the model's thinking response
