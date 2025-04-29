@@ -1,5 +1,5 @@
 #include "LLMInference.h"
-#include "common.h"
+#include "llama.h"
 #include "gguf.h"
 #include <android/log.h>
 #include <cstring>
@@ -8,6 +8,17 @@
 #define TAG "[SmolLMAndroid-Cpp]"
 #define LOGi(...) __android_log_print(ANDROID_LOG_INFO, TAG, __VA_ARGS__)
 #define LOGe(...) __android_log_print(ANDROID_LOG_ERROR, TAG, __VA_ARGS__)
+
+std::vector<llama_token> common_tokenize(
+    const struct llama_vocab * vocab,
+    const std::string & text,
+    bool   add_special,
+    bool   parse_special = false);
+
+std::string common_token_to_piece(
+    const struct llama_context * ctx,
+    llama_token   token,
+    bool          special = true);
 
 void
 LLMInference::loadModel(const char* model_path, float minP, float temperature, bool storeChats, long contextSize,

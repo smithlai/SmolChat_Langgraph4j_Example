@@ -12,6 +12,10 @@ set(SMOLLM_SOURCES
         ${GGML_DIR}/src/ggml-quants.c
         ${GGML_DIR}/src/ggml-backend-reg.cpp
         ${GGML_DIR}/src/ggml-opt.cpp
+        ${GGML_DIR}/src/ggml-cpu/ops.cpp
+        ${GGML_DIR}/src/ggml-cpu/vec.cpp
+        ${GGML_DIR}/src/ggml-cpu/unary-ops.cpp
+        ${GGML_DIR}/src/ggml-cpu/binary-ops.cpp
         ${GGML_DIR}/src/ggml-cpu/ggml-cpu.c
         ${GGML_DIR}/src/ggml-cpu/ggml-cpu.cpp
         ${GGML_DIR}/src/ggml-cpu/ggml-cpu-aarch64.cpp
@@ -60,6 +64,10 @@ set(GGUF_READER_SOURCES
         ${GGML_DIR}/src/ggml-quants.c
         ${GGML_DIR}/src/ggml-backend-reg.cpp
         ${GGML_DIR}/src/ggml-opt.cpp
+        ${GGML_DIR}/src/ggml-cpu/ops.cpp
+        ${GGML_DIR}/src/ggml-cpu/vec.cpp
+        ${GGML_DIR}/src/ggml-cpu/unary-ops.cpp
+        ${GGML_DIR}/src/ggml-cpu/binary-ops.cpp
         ${GGML_DIR}/src/ggml-cpu/ggml-cpu.c
         ${GGML_DIR}/src/ggml-cpu/ggml-cpu.cpp
         ${GGML_DIR}/src/ggml-cpu/ggml-cpu-aarch64.cpp
