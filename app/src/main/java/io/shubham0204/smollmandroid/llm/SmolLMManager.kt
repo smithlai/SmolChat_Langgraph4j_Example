@@ -17,16 +17,34 @@
 package io.shubham0204.smollmandroid.llm
 
 import android.util.Log
+import com.example.llama.localclient.SmolLMInferenceEngine
+import com.smith.lai.langgraph4j_android_adapter.httpclient.OkHttpClientBuilder
+import com.smith.lai.langgraph4j_android_adapter.localclient.LocalLLMInferenceEngine
+import dev.langchain4j.agent.tool.ToolSpecifications
+import dev.langchain4j.data.message.AiMessage
+import dev.langchain4j.data.message.ChatMessage
+import dev.langchain4j.data.message.SystemMessage
+import dev.langchain4j.data.message.ToolExecutionResultMessage
+import dev.langchain4j.data.message.UserMessage
 import io.shubham0204.smollm.SmolLM
 import io.shubham0204.smollmandroid.data.Chat
 import io.shubham0204.smollmandroid.data.MessagesDB
+import io.shubham0204.smollmandroid.llm.localclient.DummyTools
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.bsc.langgraph4j.CompileConfig
+import org.bsc.langgraph4j.CompiledGraph
+import org.bsc.langgraph4j.RunnableConfig
+import org.bsc.langgraph4j.StateGraph
+import org.bsc.langgraph4j.agentexecutor.AgentExecutor
+import org.bsc.langgraph4j.checkpoint.MemorySaver
 import org.koin.core.annotation.Single
+import java.time.Duration
+import kotlin.jvm.optionals.getOrNull
 import kotlin.time.measureTime
 
 private const val LOGTAG = "[SmolLMManager-Kt]"
@@ -40,6 +58,8 @@ class SmolLMManager(
     private var responseGenerationJob: Job? = null
     private var modelInitJob: Job? = null
     private var chat: Chat? = null
+    private lateinit var graph:CompiledGraph<AgentExecutor.State>
+    private lateinit var instanceWithTools: LocalLLMInferenceEngine
     private var isInstanceLoaded = false
     var isInferenceOn = false
 
@@ -62,7 +82,28 @@ class SmolLMManager(
         val generationTimeSecs: Int,
         val contextLengthUsed: Int,
     )
+    fun buildGraph(_instance: SmolLM){
+        val httpClientBuilder = OkHttpClientBuilder()
+        val tools = DummyTools()
+        httpClientBuilder.connectTimeout(Duration.ofSeconds(30))
+            .readTimeout(Duration.ofSeconds(120))
+        instanceWithTools = SmolLMInferenceEngine(_instance, ToolSpecifications.toolSpecificationsFrom(tools))
 
+        val stateGraph = AgentExecutor.builder()
+            .chatLanguageModel(instanceWithTools)
+            .toolSpecification(tools)
+            .build()
+
+
+        val saver = MemorySaver()
+        val compileConfig = CompileConfig.builder()
+            .checkpointSaver(saver)
+            .build()
+
+        graph = stateGraph.compile(compileConfig)
+        println("Graph inited")
+
+    }
     fun create(
         initParams: SmolLMInitParams,
         onError: (Exception) -> Unit,
@@ -102,6 +143,7 @@ class SmolLMManager(
                             }
                         }
                     }
+                    buildGraph(instance)
                     withContext(Dispatchers.Main) {
                         isInstanceLoaded = true
                         onSuccess()
@@ -128,12 +170,76 @@ class SmolLMManager(
                     var response = ""
                     val duration =
                         measureTime {
-                            instance.getResponse(query).collect { piece ->
-                                response += piece
-                                withContext(Dispatchers.Main) {
-                                    onPartialResponseGenerated(response)
+
+                            Log.e("ChatActivity", "instanceWithTools.getResponse(query): $query")
+                            val config = RunnableConfig.builder()
+                                .threadId("test1")
+                                .build()
+                            val inputs = mapOf(
+                                "messages" to listOf(
+                                    SystemMessage.from(instanceWithTools.toolPrompt),
+                                    UserMessage.from("Get the weather of Mars")
+                                )
+                            )
+                            Log.e("aaaa", "inputs: " + inputs)
+                            val iterator = graph.streamSnapshots(
+                                inputs,
+                                config
+                            )
+
+                            println("[All Steps]")
+                            var last_message:  ChatMessage? = null
+                            iterator.forEachIndexed { index, step ->
+//                println("[$index]Raw: $step")
+                                when(step.node()){
+                                    StateGraph.END -> {
+                                        val r = step.state().finalResponse().getOrNull()
+                                        println("[${step.node()}]Final Graph output: $r")
+                                        response += r
+                                    }
+                                    else -> {
+                                        val latest_message_opt = step.state().lastMessage()
+                                        println("[$index][${step.node()}]Current message: $latest_message_opt")
+                                        val final_message_opt = step.state().finalResponse()
+                                        if (final_message_opt.isPresent) {
+                                            val final_message = final_message_opt.get()
+                                            println("   Final answer: $final_message")
+                                            withContext(Dispatchers.Main) {
+                                                onPartialResponseGenerated(final_message)
+                                            }
+                                        } else if (latest_message_opt.isPresent) {
+                                            val latestmessage = latest_message_opt.get()
+                                            if (latestmessage.equals(last_message)){
+                                                return@forEachIndexed
+                                            }
+                                            if (latestmessage is ToolExecutionResultMessage) {
+                                                println("   Tool response: ${latestmessage.toolName()}: ${latestmessage.text()}")
+                                                withContext(Dispatchers.Main) {
+                                                    onPartialResponseGenerated(latestmessage.text())
+                                                }
+                                            } else if (latestmessage is AiMessage) {
+                                                val toolExecutionRequests = latestmessage.toolExecutionRequests()
+                                                if (toolExecutionRequests.size > 0) {
+                                                    val request = toolExecutionRequests.joinToString(",", transform = {
+                                                        "${it.name()} ${it.arguments()}"
+                                                    })
+                                                    println("   Tool Execution Requests: $request")
+                                                    withContext(Dispatchers.Main) {
+                                                        onPartialResponseGenerated(request)
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+
                                 }
+
                             }
+
+
+                            println("\n======== Test Complete ========")
+
+
                         }
                     response = responseTransform(response)
                     // once the response is generated

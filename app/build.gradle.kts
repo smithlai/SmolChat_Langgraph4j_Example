@@ -44,6 +44,12 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+    packaging {
+        resources {
+            excludes += "META-INF/INDEX.LIST"
+            excludes += "META-INF/io.netty.versions.properties"
+        }
+    }
     buildFeatures {
         compose = true
     }
@@ -91,6 +97,14 @@ dependencies {
     implementation(libs.koin.annotations)
     implementation(libs.koin.androidx.compose)
     implementation(libs.androidx.ui.text.google.fonts)
+
+    implementation("org.bsc.langgraph4j:langgraph4j-core:1.5.8")
+    implementation("org.bsc.langgraph4j:langgraph4j-langchain4j:1.5.8")
+    implementation("org.bsc.langgraph4j:langgraph4j-agent-executor:1.5.8")
+    implementation("dev.langchain4j:langchain4j:1.0.0-beta3")
+    implementation("dev.langchain4j:langchain4j-open-ai:1.0.0-beta3")
+    implementation("dev.langchain4j:langchain4j-ollama:1.0.0-beta3")
+    implementation(project(":langgraph4j-android-adapter"))
     ksp(libs.koin.ksp.compiler)
 
     // compose-markdown: Markdown rendering in Compose

@@ -27,3 +27,4 @@ rootProject.name = "SmolChat Android"
 include(":app")
 include(":smollm")
 include(":hf-model-hub-api")
+include(":langgraph4j-android-adapter")

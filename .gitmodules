@@ -1,3 +1,6 @@
 [submodule "llama.cpp"]
 	path = llama.cpp
 	url = https://github.com/ggerganov/llama.cpp
+[submodule "langgraph4j-android-adapter"]
+	path = langgraph4j-android-adapter
+	url = https://github.com/smithlai/langgraph4j-android-adapter.git
