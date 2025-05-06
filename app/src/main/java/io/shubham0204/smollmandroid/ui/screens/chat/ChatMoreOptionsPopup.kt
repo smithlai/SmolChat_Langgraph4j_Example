@@ -22,6 +22,7 @@ import androidx.compose.material.icons.automirrored.filled.ShortText
 import androidx.compose.material.icons.filled.Assistant
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -39,6 +40,7 @@ import io.shubham0204.smollmandroid.ui.components.createAlertDialog
 fun ChatMoreOptionsPopup(
     viewModel: ChatScreenViewModel,
     onEditChatSettingsClick: () -> Unit,
+    onRAGChatClick: () -> Unit
 ) {
     val expanded by viewModel.showMoreOptionsPopupState.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -46,6 +48,14 @@ fun ChatMoreOptionsPopup(
         expanded = expanded,
         onDismissRequest = { viewModel.hideMoreOptionsPopup() },
     ) {
+        DropdownMenuItem(
+            leadingIcon = { Icon(Icons.Default.Folder, contentDescription = "RAG") },
+            text = { Text("RAG") },
+            onClick = {
+                viewModel.hideMoreOptionsPopup()
+                onRAGChatClick()
+            },
+        )
         DropdownMenuItem(
             leadingIcon = { Icon(Icons.Default.Settings, contentDescription = "Edit Chat Name") },
             text = { Text(stringResource(R.string.chat_options_edit_settings)) },

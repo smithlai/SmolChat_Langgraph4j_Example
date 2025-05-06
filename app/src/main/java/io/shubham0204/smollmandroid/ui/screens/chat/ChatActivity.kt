@@ -98,6 +98,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.smith.smith_rag.ui.screens.docs.DocsScreen
 import io.shubham0204.smollmandroid.R
 import io.shubham0204.smollmandroid.data.Chat
 import io.shubham0204.smollmandroid.data.Task
@@ -163,8 +164,11 @@ class ChatActivity : ComponentActivity() {
                     ChatActivityScreenUI(
                         viewModel,
                         onEditChatParamsClick = { navController.navigate("edit-chat") },
+                        onRAGChatClick = { navController.navigate("ragdoc") }
                     )
                 }
+
+                composable("ragdoc") { DocsScreen(onBackClick = { navController.navigateUp() }) }
             }
         }
     }
@@ -194,6 +198,7 @@ class ChatActivity : ComponentActivity() {
 fun ChatActivityScreenUI(
     viewModel: ChatScreenViewModel,
     onEditChatParamsClick: () -> Unit,
+    onRAGChatClick: () -> Unit
 ) {
     val context = LocalContext.current
     val currChat by viewModel.currChatState.collectAsStateWithLifecycle(lifecycleOwner = LocalLifecycleOwner.current)
@@ -267,7 +272,7 @@ fun ChatActivityScreenUI(
                                             contentDescription = "Options",
                                         )
                                     }
-                                    ChatMoreOptionsPopup(viewModel, onEditChatParamsClick)
+                                    ChatMoreOptionsPopup(viewModel, onEditChatParamsClick, onRAGChatClick)
                                 }
                             }
                         },
