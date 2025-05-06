@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("com.google.devtools.ksp")
+    id("io.objectbox")
 }
 
 android {
@@ -46,18 +47,30 @@ android {
     }
     packaging {
         resources {
-            excludes += "META-INF/INDEX.LIST"
-            excludes += "META-INF/io.netty.versions.properties"
+            excludes += listOf(
+                // for langgraph4j
+                "META-INF/INDEX.LIST",
+                "META-INF/io.netty.versions.properties",
+                // for rag
+                "META-INF/DEPENDENCIES",
+                "META-INF/DEPENDENCIES.txt",
+                "META-INF/LICENSE",
+                "META-INF/LICENSE.txt",
+                "META-INF/NOTICE",
+                "META-INF/NOTICE.txt",
+                "/META-INF/{AL2.0,LGPL2.1}"
+            )
+//            // for langgraph4j
+//            excludes += "META-INF/INDEX.LIST"
+//            excludes += "META-INF/io.netty.versions.properties"
+//            // for rag
+//            excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
     buildFeatures {
         compose = true
     }
-    packaging {
-        resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
-        }
-    }
+
     applicationVariants.configureEach {
         kotlin.sourceSets {
             getByName(name) {
@@ -105,6 +118,14 @@ dependencies {
     implementation("dev.langchain4j:langchain4j-open-ai:1.0.0-beta3")
     implementation("dev.langchain4j:langchain4j-ollama:1.0.0-beta3")
     implementation(project(":langgraph4j-android-adapter"))
+    implementation(project(":SmithAndroidRAG"))
+
+//    // Koin: dependency injection
+//    implementation(libs.koin.android)
+//    implementation(libs.koin.annotations)
+//    implementation(libs.koin.androidx.compose)
+//    implementation(libs.androidx.ui.text.google.fonts)
+
     ksp(libs.koin.ksp.compiler)
 
     // compose-markdown: Markdown rendering in Compose

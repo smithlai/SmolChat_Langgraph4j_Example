@@ -24,7 +24,6 @@ import io.shubham0204.smollmandroid.llm.ModelsRepository
 import io.shubham0204.smollmandroid.ui.screens.chat.ChatActivity
 import io.shubham0204.smollmandroid.ui.screens.model_download.DownloadModelActivity
 import org.koin.android.ext.android.inject
-
 class MainActivity : ComponentActivity() {
     private val modelsRepository by inject<ModelsRepository>()
 
