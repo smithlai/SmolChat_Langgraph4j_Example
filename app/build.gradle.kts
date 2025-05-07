@@ -60,11 +60,6 @@ android {
                 "META-INF/NOTICE.txt",
                 "/META-INF/{AL2.0,LGPL2.1}"
             )
-//            // for langgraph4j
-//            excludes += "META-INF/INDEX.LIST"
-//            excludes += "META-INF/io.netty.versions.properties"
-//            // for rag
-//            excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
     buildFeatures {

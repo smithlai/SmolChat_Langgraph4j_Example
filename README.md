@@ -36,6 +36,48 @@ class DummyTools {
     fun cat_language(@P("Original string") text: String): String = text.toList().joinToString(" Miao ")
 }
 ```
+
+**app/build.gradle.kts**:  
+Added dependencies [langgraph4j-android-adapter](https://github.com/smithlai/langgraph4j-android-adapter) for Langgraph4j, and [SmithAndroidRAG]((https://github.com/smithlai/RAG-Android)) for RAG functionality. 
+Updated packaging to exclude conflicting metadata.
+
+
+```kotlin
+plugins {
+    ......
+    id("io.objectbox")
+}
+android{
+    packaging {
+        resources {
+            excludes += listOf(
+                // for langgraph4j
+                "META-INF/INDEX.LIST",
+                "META-INF/io.netty.versions.properties",
+                // for rag
+                "META-INF/DEPENDENCIES",
+                "META-INF/DEPENDENCIES.txt",
+                "META-INF/LICENSE",
+                "META-INF/LICENSE.txt",
+                "META-INF/NOTICE",
+                "META-INF/NOTICE.txt",
+                "/META-INF/{AL2.0,LGPL2.1}"
+            )
+        }
+    }
+}
+dependencies {
+    implementation("org.bsc.langgraph4j:langgraph4j-core:1.5.8")
+    implementation("org.bsc.langgraph4j:langgraph4j-langchain4j:1.5.8")
+    implementation("org.bsc.langgraph4j:langgraph4j-agent-executor:1.5.8")
+    implementation("dev.langchain4j:langchain4j:1.0.0-beta3")
+    implementation("dev.langchain4j:langchain4j-open-ai:1.0.0-beta3")
+    implementation("dev.langchain4j:langgraph4j-ollama:1.0.0-beta3")
+    implementation(project(":langgraph4j-android-adapter"))
+    implementation(project(":SmithAndroidRAG"))
+}
+
+```
 ----------------------------------------------------------
 
 <table>
