@@ -4,6 +4,6 @@
 [submodule "langgraph4j-android-adapter"]
 	path = langgraph4j-android-adapter
 	url = https://github.com/smithlai/langgraph4j-android-adapter.git
-[submodule "SmithAndroidRAG"]
+[submodule "rag_android"]
 	path = rag_android
 	url = https://github.com/smithlai/RAG-Android.git
