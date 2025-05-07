@@ -1,6 +1,5 @@
-# SmolChat - On-Device Inference of SLMs in Android
 
-## Modifications for LangGraph4j Integration
+# Modifications for LangGraph4j Integration
 
 Integrated `langgraph4j-android-adapter` to enable `AgentExecutor` for structured AI workflows with tool support (e.g., cat language, weather, RAG search). Key changes:
 
@@ -79,6 +78,8 @@ dependencies {
 
 ```
 ----------------------------------------------------------
+
+# SmolChat - On-Device Inference of SLMs in Android
 
 <table>
 <tr>
