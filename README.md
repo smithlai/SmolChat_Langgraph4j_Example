@@ -1,5 +1,43 @@
 # SmolChat - On-Device Inference of SLMs in Android
 
+## Modifications for LangGraph4j Integration
+
+Integrated `langgraph4j-android-adapter` to enable `AgentExecutor` for structured AI workflows with tool support (e.g., cat language, weather, RAG search). Key changes:
+
+- **SmolLMManager.kt**: Added `buildGraph` for `AgentExecutor` initialization and modified response generation to use `graph.streamSnapshots`.
+```kotlin
+fun buildGraph(_instance: SmolLM) {
+    instanceWithTools = SmolLMInferenceEngine(_instance, ToolSpecifications.toolSpecificationsFrom(DummyTools()))
+    val stateGraph = AgentExecutor.builder()
+        .chatLanguageModel(instanceWithTools)
+        .toolSpecification(DummyTools())
+        .build()
+    graph = stateGraph.compile(CompileConfig.builder().checkpointSaver(MemorySaver()).build())
+}
+```
+
+- **SmolLMInferenceEngine.kt**: Created to wrap `SmolLM` for `LocalLLMInferenceEngine`, supporting chat and tool integration.
+```kotlin
+class SmolLMInferenceEngine(
+    private val smolLM: SmolLM,
+    toolSpecifications: List<ToolSpecification> = emptyList(),
+    toolAdapter: LLMToolAdapter = Llama3_2_ToolAdapter()
+) : LocalLLMInferenceEngine(toolSpecifications, toolAdapter) {
+    override fun generate(prompt: String): Flow<String> = smolLM.getResponse(prompt)
+}
+```
+
+- **DummyTools.kt**: Defined tools for `AgentExecutor` (e.g., `cat_language`, `weather`, `alice_search`).
+```kotlin
+class DummyTools {
+    @Tool("translate a string into cat language,
+
+ returns string")
+    fun cat_language(@P("Original string") text: String): String = text.toList().joinToString(" Miao ")
+}
+```
+----------------------------------------------------------
+
 <table>
 <tr>
 <td>

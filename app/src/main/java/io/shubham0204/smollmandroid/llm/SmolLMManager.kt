@@ -171,39 +171,39 @@ class SmolLMManager(
                     val duration =
                         measureTime {
 
-                            Log.e("ChatActivity", "instanceWithTools.getResponse(query): $query")
+                            Log.i(LOGTAG, "instanceWithTools.getResponse(query): $query")
                             val config = RunnableConfig.builder()
                                 .threadId("test1")
                                 .build()
                             val inputs = mapOf(
                                 "messages" to listOf(
                                     SystemMessage.from(instanceWithTools.toolPrompt),
-                                    UserMessage.from("Get the weather of Mars")
+                                    UserMessage.from(query)
                                 )
                             )
-                            Log.e("aaaa", "inputs: " + inputs)
+                            Log.i(LOGTAG, "Initial messages: $inputs")
                             val iterator = graph.streamSnapshots(
                                 inputs,
                                 config
                             )
 
-                            println("[All Steps]")
+                            Log.i(LOGTAG, "[All Steps]")
                             var last_message:  ChatMessage? = null
                             iterator.forEachIndexed { index, step ->
-//                println("[$index]Raw: $step")
+//                Log.i(LOGTAG, "[$index]Raw: $step")
                                 when(step.node()){
                                     StateGraph.END -> {
                                         val r = step.state().finalResponse().getOrNull()
-                                        println("[${step.node()}]Final Graph output: $r")
+                                        Log.i(LOGTAG, "[${step.node()}]Final Graph output: $r")
                                         response += r
                                     }
                                     else -> {
                                         val latest_message_opt = step.state().lastMessage()
-                                        println("[$index][${step.node()}]Current message: $latest_message_opt")
+                                        Log.i(LOGTAG, "[$index][${step.node()}]Current message: $latest_message_opt")
                                         val final_message_opt = step.state().finalResponse()
                                         if (final_message_opt.isPresent) {
                                             val final_message = final_message_opt.get()
-                                            println("   Final answer: $final_message")
+                                            Log.i(LOGTAG, "   Final answer: $final_message")
                                             withContext(Dispatchers.Main) {
                                                 onPartialResponseGenerated(final_message)
                                             }
@@ -213,7 +213,7 @@ class SmolLMManager(
                                                 return@forEachIndexed
                                             }
                                             if (latestmessage is ToolExecutionResultMessage) {
-                                                println("   Tool response: ${latestmessage.toolName()}: ${latestmessage.text()}")
+                                                Log.i(LOGTAG, "   Tool response: ${latestmessage.toolName()}: ${latestmessage.text()}")
                                                 withContext(Dispatchers.Main) {
                                                     onPartialResponseGenerated(latestmessage.text())
                                                 }
@@ -223,7 +223,7 @@ class SmolLMManager(
                                                     val request = toolExecutionRequests.joinToString(",", transform = {
                                                         "${it.name()} ${it.arguments()}"
                                                     })
-                                                    println("   Tool Execution Requests: $request")
+                                                    Log.i(LOGTAG, "   Tool Execution Requests: $request")
                                                     withContext(Dispatchers.Main) {
                                                         onPartialResponseGenerated(request)
                                                     }
@@ -237,7 +237,7 @@ class SmolLMManager(
                             }
 
 
-                            println("\n======== Test Complete ========")
+                            Log.i(LOGTAG, "\n======== Test Complete ========")
 
 
                         }
