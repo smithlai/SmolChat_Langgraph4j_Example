@@ -77,6 +77,9 @@ set(GGUF_READER_SOURCES
         GGUFReader.cpp
 )
 
+add_compile_options("-ffile-prefix-map=${LLAMA_DIR}=.")
+add_link_options("LINKER:--build-id=none")
+
 # compiling for different CPU extensions for Arm64 (aarch64)
 # See docs/build_arm_flags.md for more details
 
