@@ -23,9 +23,9 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "SmolChat Android"
+rootProject.name = "SmolChat Android + Langgraph4j"
 include(":app")
 include(":smollm")
 include(":hf-model-hub-api")
 include(":langgraph4j-android-adapter")
-include(":SmithAndroidRAG")
+include(":rag_android")

@@ -113,7 +113,7 @@ dependencies {
     implementation("dev.langchain4j:langchain4j-open-ai:1.0.0-beta3")
     implementation("dev.langchain4j:langchain4j-ollama:1.0.0-beta3")
     implementation(project(":langgraph4j-android-adapter"))
-    implementation(project(":SmithAndroidRAG"))
+    implementation(project(":rag_android"))
 
 //    // Koin: dependency injection
 //    implementation(libs.koin.android)

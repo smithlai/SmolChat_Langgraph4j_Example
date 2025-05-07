@@ -38,7 +38,7 @@ class DummyTools {
 ```
 
 **app/build.gradle.kts**:  
-Added dependencies [langgraph4j-android-adapter](https://github.com/smithlai/langgraph4j-android-adapter) for Langgraph4j, and [SmithAndroidRAG]((https://github.com/smithlai/RAG-Android)) for RAG functionality. 
+Added dependencies [langgraph4j-android-adapter](https://github.com/smithlai/langgraph4j-android-adapter) for Langgraph4j, and [rag_android]((https://github.com/smithlai/RAG-Android)) for RAG functionality. 
 Updated packaging to exclude conflicting metadata.
 
 
@@ -74,7 +74,7 @@ dependencies {
     implementation("dev.langchain4j:langchain4j-open-ai:1.0.0-beta3")
     implementation("dev.langchain4j:langgraph4j-ollama:1.0.0-beta3")
     implementation(project(":langgraph4j-android-adapter"))
-    implementation(project(":SmithAndroidRAG"))
+    implementation(project(":rag_android"))
 }
 
 ```
