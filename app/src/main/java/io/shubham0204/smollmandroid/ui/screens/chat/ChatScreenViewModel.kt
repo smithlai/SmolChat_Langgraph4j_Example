@@ -22,8 +22,10 @@ import android.graphics.Color
 import android.text.util.Linkify
 import android.util.Log
 import android.util.TypedValue
+import androidx.compose.ui.graphics.Color as ComposeColor
 import androidx.core.content.res.ResourcesCompat
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import io.noties.markwon.AbstractMarkwonPlugin
 import io.noties.markwon.Markwon
 import io.noties.markwon.core.CorePlugin
@@ -91,6 +93,12 @@ class ChatScreenViewModel(
 
     private val _showTaskListBottomListState = MutableStateFlow(false)
     val showTaskListBottomListState: StateFlow<Boolean> = _showTaskListBottomListState
+
+    private val _panelColor = MutableStateFlow(ComposeColor.Gray)
+    val panelColor: StateFlow<ComposeColor> = _panelColor
+
+    private val _panelText = MutableStateFlow("Side Panel\nYou can ask model to change panel color")
+    val panelText: StateFlow<String> = _panelText
 
     // Used to pre-set a value in the query text-field of the chat screen
     // It is set when a query comes from a 'share-text' intent in ChatActivity
@@ -302,6 +310,7 @@ class ChatScreenViewModel(
                         onComplete(ModelLoadingState.SUCCESS)
                     },
                 )
+                smolLMManager.setViewModel(this)
             }
         }
     }
@@ -360,5 +369,11 @@ class ChatScreenViewModel(
 
     fun hideTaskListBottomList() {
         _showTaskListBottomListState.value = false
+    }
+
+    fun setPanelColor(red: Float, green: Float, blue: Float, alpha: Float = 1f) {
+        _panelColor.value = ComposeColor(red, green, blue, alpha)
+        _panelText.value = "Color: R=$red, G=$green, B=$blue"
+        Log.i("aaaa", "Color: ${_panelColor.value}, Text: ${_panelText.value}")
     }
 }

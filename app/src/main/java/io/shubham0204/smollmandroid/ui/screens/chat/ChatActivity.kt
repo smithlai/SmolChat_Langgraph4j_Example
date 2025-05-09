@@ -204,6 +204,8 @@ fun ChatActivityScreenUI(
     val currChat by viewModel.currChatState.collectAsStateWithLifecycle(lifecycleOwner = LocalLifecycleOwner.current)
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+    val panelColor by viewModel.panelColor.collectAsState()
+    val panelText by viewModel.panelText.collectAsState()
     LaunchedEffect(currChat) { viewModel.loadModel() }
     SmolLMAndroidTheme {
         ModalNavigationDrawer(
@@ -279,14 +281,36 @@ fun ChatActivityScreenUI(
                     )
                 },
             ) { innerPadding ->
-                Column(
-                    modifier =
-                        Modifier
-                            .padding(innerPadding)
-                            .background(MaterialTheme.colorScheme.background),
+                Row(
+                    modifier = Modifier
+                        .padding(innerPadding)
+                        .background(MaterialTheme.colorScheme.background)
+                        .fillMaxSize()
                 ) {
-                    if (currChat != null) {
-                        ScreenUI(viewModel, currChat!!)
+                    // Chat content
+                    Column(
+                        modifier = Modifier
+                            .weight(3f)
+                            .fillMaxSize()
+                    ) {
+                        if (currChat != null) {
+                            ScreenUI(viewModel, currChat!!)
+                        }
+                    }
+                    // Side panel
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxSize()
+                            .widthIn(min = 100.dp)
+                            .background(panelColor)
+                    ) {
+                        Text(
+                            text = panelText,
+                            modifier = Modifier.align(Alignment.Center),
+                            color = Color.White,
+                            fontSize = 16.sp
+                        )
                     }
                 }
             }
@@ -766,7 +790,7 @@ private fun SelectModelsList(viewModel: ChatScreenViewModel) {
     val context = LocalContext.current
     if (showSelectModelsListDialog) {
         val modelsList by
-            viewModel.modelsRepository.getAvailableModels().collectAsState(emptyList())
+        viewModel.modelsRepository.getAvailableModels().collectAsState(emptyList())
         SelectModelsList(
             onDismissRequest = { viewModel.hideSelectModelListDialog() },
             modelsList,

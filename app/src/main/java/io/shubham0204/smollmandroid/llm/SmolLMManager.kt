@@ -18,6 +18,7 @@ package io.shubham0204.smollmandroid.llm
 
 import android.util.Log
 import com.example.llama.localclient.SmolLMInferenceEngine
+import com.smith.lai.langgraph4j_android_adapter.BuildConfig
 import com.smith.lai.langgraph4j_android_adapter.httpclient.OkHttpClientBuilder
 import com.smith.lai.langgraph4j_android_adapter.localclient.LocalLLMInferenceEngine
 import dev.langchain4j.agent.tool.ToolSpecifications
@@ -26,10 +27,14 @@ import dev.langchain4j.data.message.ChatMessage
 import dev.langchain4j.data.message.SystemMessage
 import dev.langchain4j.data.message.ToolExecutionResultMessage
 import dev.langchain4j.data.message.UserMessage
+import dev.langchain4j.model.chat.ChatModel
+import dev.langchain4j.model.ollama.OllamaChatModel
+import dev.langchain4j.model.openai.OpenAiChatModel
 import io.shubham0204.smollm.SmolLM
 import io.shubham0204.smollmandroid.data.Chat
 import io.shubham0204.smollmandroid.data.MessagesDB
 import io.shubham0204.smollmandroid.llm.localclient.DummyTools
+import io.shubham0204.smollmandroid.ui.screens.chat.ChatScreenViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -58,8 +63,16 @@ class SmolLMManager(
     private var responseGenerationJob: Job? = null
     private var modelInitJob: Job? = null
     private var chat: Chat? = null
-    private lateinit var graph:CompiledGraph<AgentExecutor.State>
-    private lateinit var instanceWithTools: LocalLLMInferenceEngine
+    private lateinit var viewModel: ChatScreenViewModel
+    private var compiled_graph:CompiledGraph<AgentExecutor.State>? = null
+    private val TEST_MODE = listOf("openai", "ollama", "local").get(2)
+    // openai test ok
+    // local sometimes ok with llama3.1
+    //
+    private var instanceWithTools: LocalLLMInferenceEngine? = null
+    private var openai: OpenAiChatModel? = null
+    private var ollama: OllamaChatModel? = null
+
     private var isInstanceLoaded = false
     var isInferenceOn = false
 
@@ -82,16 +95,64 @@ class SmolLMManager(
         val generationTimeSecs: Int,
         val contextLengthUsed: Int,
     )
-    fun buildGraph(_instance: SmolLM){
-        val httpClientBuilder = OkHttpClientBuilder()
-        val tools = DummyTools()
-        httpClientBuilder.connectTimeout(Duration.ofSeconds(30))
-            .readTimeout(Duration.ofSeconds(120))
-        instanceWithTools = SmolLMInferenceEngine(_instance, ToolSpecifications.toolSpecificationsFrom(tools))
+    fun setViewModel(_viewModel:ChatScreenViewModel){
+        viewModel = _viewModel
+    }
+    fun resetGraph(_instance: SmolLM){
+        val tools = DummyTools(viewModel)
+        val model: ChatModel? = when(TEST_MODE){
+            "openai" ->{
+                if (openai == null) {
+                    val httpClientBuilder = OkHttpClientBuilder()
+                    httpClientBuilder.connectTimeout(Duration.ofSeconds(30))
+                        .readTimeout(Duration.ofSeconds(120))
+                    openai = OpenAiChatModel.builder()
+                        .apiKey(BuildConfig.OPENAI_API_KEY)
+                        .baseUrl("https://api.openai.com/v1")
+                        .httpClientBuilder(httpClientBuilder)
+                        .modelName("gpt-4.1-nano")
+                        .temperature(0.0)
+                        .maxTokens(2000)
+                        .maxRetries(2)
+                        .logRequests(true)
+                        .logResponses(true)
+                        .build()
+                }
+                openai
+            }
+            "ollama"->{
+                if (ollama == null) {
+                    val httpClientBuilder = OkHttpClientBuilder()
+                    httpClientBuilder.connectTimeout(Duration.ofSeconds(30))
+                        .readTimeout(Duration.ofSeconds(120))
+                    ollama = OllamaChatModel.builder()
+                        .baseUrl(BuildConfig.OLLAMA_URL)
+                        .httpClientBuilder(httpClientBuilder)
+                        .temperature(0.0)
+                        .logRequests(true)
+                        .logResponses(true)
+                        .modelName("llama3.1:latest")
+                        .build();
+                }
+                ollama
+            }
+            else->{
+                if (instanceWithTools == null) {
+                    instanceWithTools =
+                        SmolLMInferenceEngine(_instance, ToolSpecifications.toolSpecificationsFrom(tools))
+                }else{
+                    instanceWithTools!!.reset()
+                }
+                instanceWithTools
+            }
+        }
+
+
+
 
         val stateGraph = AgentExecutor.builder()
-            .chatLanguageModel(instanceWithTools)
-            .toolSpecification(tools)
+            .chatModel(model!!)
+            .toolsFromObject(tools)
             .build()
 
 
@@ -99,8 +160,7 @@ class SmolLMManager(
         val compileConfig = CompileConfig.builder()
             .checkpointSaver(saver)
             .build()
-
-        graph = stateGraph.compile(compileConfig)
+        compiled_graph = stateGraph.compile(compileConfig)
         println("Graph inited")
 
     }
@@ -143,7 +203,6 @@ class SmolLMManager(
                             }
                         }
                     }
-                    buildGraph(instance)
                     withContext(Dispatchers.Main) {
                         isInstanceLoaded = true
                         onSuccess()
@@ -170,19 +229,21 @@ class SmolLMManager(
                     var response = ""
                     val duration =
                         measureTime {
-
+                            resetGraph(instance)
                             Log.i(LOGTAG, "instanceWithTools.getResponse(query): $query")
                             val config = RunnableConfig.builder()
                                 .threadId("test1")
                                 .build()
                             val inputs = mapOf(
-                                "messages" to listOf(
-                                    SystemMessage.from(instanceWithTools.toolPrompt),
+                                "messages" to mutableListOf<ChatMessage>(
                                     UserMessage.from(query)
                                 )
                             )
+                            if (instanceWithTools != null){
+                                inputs.get("messages")!!.add(0,SystemMessage.from(instanceWithTools!!.toolPrompt))
+                            }
                             Log.i(LOGTAG, "Initial messages: $inputs")
-                            val iterator = graph.streamSnapshots(
+                            val iterator = compiled_graph!!.streamSnapshots(
                                 inputs,
                                 config
                             )
@@ -190,7 +251,7 @@ class SmolLMManager(
                             Log.i(LOGTAG, "[All Steps]")
                             var last_message:  ChatMessage? = null
                             iterator.forEachIndexed { index, step ->
-//                Log.i(LOGTAG, "[$index]Raw: $step")
+                                Log.i(LOGTAG, "[$index]Raw: $step")
                                 when(step.node()){
                                     StateGraph.END -> {
                                         val r = step.state().finalResponse().getOrNull()
