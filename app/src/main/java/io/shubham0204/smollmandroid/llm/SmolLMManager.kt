@@ -28,6 +28,7 @@ import dev.langchain4j.data.message.SystemMessage
 import dev.langchain4j.data.message.ToolExecutionResultMessage
 import dev.langchain4j.data.message.UserMessage
 import dev.langchain4j.model.chat.ChatModel
+import dev.langchain4j.model.input.PromptTemplate
 import dev.langchain4j.model.ollama.OllamaChatModel
 import dev.langchain4j.model.openai.OpenAiChatModel
 import io.shubham0204.smollm.SmolLM
@@ -65,10 +66,10 @@ class SmolLMManager(
     private var chat: Chat? = null
     private lateinit var viewModel: ChatScreenViewModel
     private var compiled_graph:CompiledGraph<AgentExecutor.State>? = null
-    private val TEST_MODE = listOf("openai", "ollama", "local").get(2)
+    private val TEST_MODE = listOf("openai", "ollama", "local").get(0)
     // openai test ok
     // local sometimes ok with llama3.1
-    //
+    // ollama success with "hhao/qwen2.5-coder-tools:latest"
     private var instanceWithTools: LocalLLMInferenceEngine? = null
     private var openai: OpenAiChatModel? = null
     private var ollama: OllamaChatModel? = null
@@ -131,7 +132,10 @@ class SmolLMManager(
                         .temperature(0.0)
                         .logRequests(true)
                         .logResponses(true)
-                        .modelName("llama3.1:latest")
+//                        .modelName("llama3.1:latest")
+                        .modelName("hhao/qwen2.5-coder-tools:latest")
+//                        .modelName("llama3.2:3b-instruct-q4_K_M")
+
                         .build();
                 }
                 ollama
@@ -153,6 +157,7 @@ class SmolLMManager(
         val stateGraph = AgentExecutor.builder()
             .chatModel(model!!)
             .toolsFromObject(tools)
+//            .systemMessage(SystemMessage(""))
             .build()
 
 
@@ -231,17 +236,32 @@ class SmolLMManager(
                         measureTime {
                             resetGraph(instance)
                             Log.i(LOGTAG, "instanceWithTools.getResponse(query): $query")
+
                             val config = RunnableConfig.builder()
                                 .threadId("test1")
                                 .build()
                             val inputs = mapOf(
-                                "messages" to mutableListOf<ChatMessage>(
-                                    UserMessage.from(query)
-                                )
+                                "messages" to mutableListOf<ChatMessage>()
                             )
-                            if (instanceWithTools != null){
-                                inputs.get("messages")!!.add(0,SystemMessage.from(instanceWithTools!!.toolPrompt))
+                            when (TEST_MODE){
+                                "local" -> {
+                                    inputs.get("messages")!!.add(SystemMessage.from(instanceWithTools!!.toolPrompt))
+                                    inputs.get("messages")!!.add(UserMessage.from(query))
+                                }
+                                "ollama"-> {
+//                                    val prompt_template = PromptTemplate.from(
+//                                        """<|begin_of_text|><|start_header_id|>user<|end_header_id|>
+//{{raw_text}} <|eot_id|><|start_header_id|>assistant<|end_header_id|>""")
+//                                    val prompt = prompt_template.apply(mapOf("raw_text" to query))
+//                                        .toUserMessage()
+//                                    inputs.get("messages")!!.add(prompt)
+                                    inputs.get("messages")!!.add(UserMessage.from(query))
+                                }
+                                "openai"->{
+                                    inputs.get("messages")!!.add(UserMessage.from(query))
+                                }
                             }
+
                             Log.i(LOGTAG, "Initial messages: $inputs")
                             val iterator = compiled_graph!!.streamSnapshots(
                                 inputs,
