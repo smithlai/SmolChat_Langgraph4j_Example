@@ -74,7 +74,7 @@ dependencies {
     implementation(project(":langgraph4j-android-adapter"))
     implementation(project(":rag_android"))
 }
-
+```
 ## Troubleshooting
 
 **HTTP Communication Issues**:
@@ -108,8 +108,6 @@ If you encounter `java.net.UnknownServiceException: CLEARTEXT communication to <
     </application>
 
 </manifest>
-```
-
 ```
 ----------------------------------------------------------
 
