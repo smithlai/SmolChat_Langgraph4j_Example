@@ -3,9 +3,15 @@
 
 Integrated `langgraph4j-android-adapter` to enable `AgentExecutor` for structured AI workflows with tool support (e.g., cat language, weather, RAG search). Key changes:
 
+```kotlin
+// Note: choose which model api you will use.
+private val TEST_MODE = listOf("openai", "ollama", "local").get(0)
+```
+
+
 - **SmolLMManager.kt**: Added `buildGraph` for `AgentExecutor` initialization and modified response generation to use `graph.streamSnapshots`.
 ```kotlin
-fun buildGraph(_instance: SmolLM) {
+fun resetGraph(_instance: SmolLM) {
     instanceWithTools = SmolLMInferenceEngine(_instance, ToolSpecifications.toolSpecificationsFrom(DummyTools()))
     val stateGraph = AgentExecutor.builder()
         .chatLanguageModel(instanceWithTools)
