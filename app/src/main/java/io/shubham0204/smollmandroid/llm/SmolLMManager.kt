@@ -66,7 +66,7 @@ class SmolLMManager(
     private var chat: Chat? = null
     private lateinit var viewModel: ChatScreenViewModel
     private var compiled_graph:CompiledGraph<AgentExecutor.State>? = null
-    private val TEST_MODE = listOf("openai", "ollama", "local").get(0)
+    private val TEST_MODE = listOf("openai", "ollama", "local").get(2)
     // openai test ok
     // local sometimes ok with llama3.1
     // ollama success with "hhao/qwen2.5-coder-tools:latest"
@@ -147,6 +147,7 @@ class SmolLMManager(
                 }else{
                     instanceWithTools!!.reset()
                 }
+                instanceWithTools?.setTemplate(chat!!.chatTemplate)
                 instanceWithTools
             }
         }
@@ -245,16 +246,11 @@ class SmolLMManager(
                             )
                             when (TEST_MODE){
                                 "local" -> {
-                                    inputs.get("messages")!!.add(SystemMessage.from(instanceWithTools!!.toolPrompt))
+
+                                    inputs.get("messages")!!.add(SystemMessage.from(instanceWithTools!!.toolPrompt()))
                                     inputs.get("messages")!!.add(UserMessage.from(query))
                                 }
                                 "ollama"-> {
-//                                    val prompt_template = PromptTemplate.from(
-//                                        """<|begin_of_text|><|start_header_id|>user<|end_header_id|>
-//{{raw_text}} <|eot_id|><|start_header_id|>assistant<|end_header_id|>""")
-//                                    val prompt = prompt_template.apply(mapOf("raw_text" to query))
-//                                        .toUserMessage()
-//                                    inputs.get("messages")!!.add(prompt)
                                     inputs.get("messages")!!.add(UserMessage.from(query))
                                 }
                                 "openai"->{

@@ -106,12 +106,12 @@ dependencies {
     implementation(libs.koin.androidx.compose)
     implementation(libs.androidx.ui.text.google.fonts)
 
-    implementation("org.bsc.langgraph4j:langgraph4j-core:1.5.11")
-    implementation("org.bsc.langgraph4j:langgraph4j-langchain4j:1.5.11")
-    implementation("org.bsc.langgraph4j:langgraph4j-agent-executor:1.5.11")
-    implementation("dev.langchain4j:langchain4j:1.0.0-rc1")
-    implementation("dev.langchain4j:langchain4j-open-ai:1.0.0-rc1")
-    implementation("dev.langchain4j:langchain4j-ollama:1.0.0-rc1")
+    implementation("org.bsc.langgraph4j:langgraph4j-core:1.5.12")
+    implementation("org.bsc.langgraph4j:langgraph4j-langchain4j:1.5.12")
+    implementation("org.bsc.langgraph4j:langgraph4j-agent-executor:1.5.12")
+    implementation("dev.langchain4j:langchain4j:1.0.0-beta5")
+    implementation("dev.langchain4j:langchain4j-open-ai:1.0.0-beta5")
+    implementation("dev.langchain4j:langchain4j-ollama:1.0.0-beta5")
     implementation(project(":langgraph4j-android-adapter"))
     implementation(project(":rag_android"))
 
